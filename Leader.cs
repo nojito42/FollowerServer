@@ -1,0 +1,17 @@
+﻿using ExileCore;
+using ExileCore.PoEMemory;
+using ExileCore.PoEMemory.Components;
+using ExileCore.PoEMemory.MemoryObjects;
+using ExileCore.Shared.Enums;
+using System.Linq;
+
+namespace FollowerPlugin;
+
+public class Leader
+{
+    public string LeaderName { get; set; }
+    public Element Element { get; set; }
+
+    public Entity Entity => Core.Current.GameController.Entities
+        .FirstOrDefault(entity => entity.IsValid && entity.Type == EntityType.Player && entity.GetComponent<Player>().PlayerName == Element[0].Text);
+}

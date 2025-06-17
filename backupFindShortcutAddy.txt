@@ -1,0 +1,18 @@
+ var mem = GameController.Memory;
+        var address = GameController.IngameState.ShortcutSettings.Address;
+        int maxTries = 10000;
+        int tries = 0;
+        IList<Shortcut> sc = new List<Shortcut>();
+        StdVector vec = new StdVector();
+        while ((sc.Count <= 0 || sc.Count > 1000) && tries < maxTries)
+        {
+             vec = mem.Read<StdVector>(address + (792 + tries));
+            sc = mem.ReadStdVector<Shortcut>(vec);
+            tries++;
+        }
+        LogMessage((792 + tries - 1).ToString());
+
+        var vec2 = mem.Read<StdVector>(address + 920);
+        IList<Shortcut> sc3 = mem.ReadStdVector<Shortcut>(vec);
+
+        LogMessage(GameController.IngameState.ShortcutSettings.Shortcuts.Count + " WTF" + "");
