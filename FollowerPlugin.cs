@@ -109,6 +109,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         return null;
+    }
 private void FollowerBehavior()
     {
         LogMessage("FollowerBehavior Tick", 0.5f);
