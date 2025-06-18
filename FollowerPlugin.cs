@@ -146,7 +146,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                            
                         };
                                                 
-                        if (GameController.Area.CurrentArea.IsHideout  GameController.IngameState.IngameUi.PartyElement.Information.FirstOrDefault(k => k.Key == Leader.LeaderName).Value.IsInDifferentZone)
+                        if (GameController.Area.CurrentArea.IsHideout && GameController.IngameState.IngameUi.PartyElement.Information.FirstOrDefault(k => k.Key == Leader.LeaderName).Value.IsInDifferentZone)
                         {
 
                             LogMessage($"Leader {Leader.LeaderName} need reach it in map?.");
