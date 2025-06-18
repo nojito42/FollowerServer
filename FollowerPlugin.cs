@@ -112,133 +112,123 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void FollowerBehavior()
     {
-        LogMessage("FollowerBehavior Tick", 0.5f);
-
-        var pt = GameController.Party();
-        if (pt == null || pt.ChildCount == 0 || pt[0]?.Children == null)
+        try
         {
-            LogMessage("No party found or invalid party UI.");
-            return;
-        }
+            LogMessage("FollowerBehavior Tick", 0.5f);
+            var pt = GameController.Party();
+            Settings.PartySubMenu.PartyMembers.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
 
-        var partyMembers = pt[0].Children.Select(child => child?[0]?.Text).Where(t => !string.IsNullOrEmpty(t)).ToList();
-        Settings.PartySubMenu.PartyMembers.SetListValues(partyMembers);
+            SetFollowerSkillsAndShortcuts();
 
-        SetFollowerSkillsAndShortcuts();
+            if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground())
+            {
+                LogMessage("Game not in focus or menu opened, skipping.", 0.5f);
+                return;
+            }
 
-        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground())
-        {
-            LogMessage("Not in-game, or menu open, or window not in foreground.");
-            return;
-        }
+            if (GameController.CloseWindowIfOpen())
+            {
+                LogMessage("Flagged panels found, skipping follower behavior.", 0.5f);
+                return;
+            }
 
-        if (GameController.CloseWindowIfOpen())
-        {
-            LogMessage("Flagged panels found, skipping follower behavior.", 0.5f);
-            return;
-        }
-
-        var selectedLeaderName = Settings.PartySubMenu.PartyMembers.Value;
-        if (string.IsNullOrEmpty(selectedLeaderName))
-        {
-            LogMessage("No leader selected.");
-            return;
-        }
-
-        var leaderElement = pt[0].Children.FirstOrDefault(child => child?[0]?.Text == selectedLeaderName);
-        if (leaderElement == null)
-        {
-            LogMessage("Leader element not found.");
-            return;
-        }
-
-        Leader = new Leader
-        {
-            LeaderName = selectedLeaderName,
-            Element = leaderElement,
-            LastTargetedPortalOrTransition = null
-        };
-
-        if (GameController.Area.CurrentArea.IsHideout && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
-        {
-            LogMessage($"Leader {Leader.LeaderName} is in {Leader.LeaderCurrentArea}, we're in hideout.");
-
-            if (!Settings.PartySubMenu.Follow)
+            if (pt == null || Settings.PartySubMenu.PartyMembers.Value == null)
                 return;
 
-            var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
-                .Where(x => x.IsValid && x.IsTargetable)
-                .OrderBy(e => e.DistancePlayer)
-                .ToList();
+            var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.PartySubMenu.PartyMembers.Value);
+            if (leaderElement == null)
+                return;
 
-            var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == Leader.LeaderCurrentArea);
-
-            if (firstTP != null)
+            Leader = new Leader
             {
-                LogMessage($"Trying to use portal to {firstTP.RenderName}", 0.5f);
+                LeaderName = leaderElement[0].Text,
+                Element = leaderElement,
+                LastTargetedPortalOrTransition = Leader?.LastTargetedPortalOrTransition // conserve ancien si présent
+            };
 
-                var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(firstTP.PosNum);
-                if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
+            // Cas 1 : On est en hideout, et le leader est en map
+            if (GameController.Area.CurrentArea.IsHideout && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
+            {
+                LogMessage($"Leader {Leader.LeaderName} is in a different map.");
+
+                if (Settings.PartySubMenu.Follow)
                 {
-                    Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
-                    Input.SetCursorPos(screenPos);
-                    Input.Click(MouseButtons.Left);
-                    Thread.Sleep(100);
-                    return;
+                    var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
+                        .Where(x => x.IsValid && x.IsTargetable)
+                        .OrderBy(e => e.DistancePlayer)
+                        .ToList();
+
+                    var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == Leader.LeaderCurrentArea);
+
+                    if (firstTP != null)
+                    {
+                        LogMessage($"Found town portal to follow: {firstTP.RenderName}", 0.5f);
+                        var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(firstTP.PosNum);
+                        if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
+                        {
+                            Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
+                            Input.SetCursorPos(screenPos);
+                            Input.Click(MouseButtons.Left);
+                            Thread.Sleep(100);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        var leaderTpElement = Leader.Element.Children?[3];
+                        if (leaderTpElement?.IsActive == true)
+                        {
+                            Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+                            Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+                            Input.Click(MouseButtons.Left);
+                            Input.KeyDown(Keys.Enter);
+                            Input.KeyUp(Keys.Enter);
+                            Thread.Sleep(1000);
+                            Leader.LastTargetedPortalOrTransition = null;
+                            return;
+                        }
+                    }
                 }
             }
-            else
+
+            // Cas 2 : Leader est sur la même map et utilise une transition ou un portail
+            if (Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
             {
-                var tpElement = Leader.Element.Children?[3];
-                if (tpElement?.IsActive == true)
+                var t = leaderActor.CurrentAction?.Target;
+                if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
                 {
-                    Graphics.DrawFrame(tpElement.GetClientRect(), SharpDX.Color.Red, 2);
-                    Input.SetCursorPos(tpElement.GetClientRect().Center.ToVector2Num());
-                    Input.Click(MouseButtons.Left);
-                    Input.KeyDown(Keys.Enter);
-                    Input.KeyUp(Keys.Enter);
-                    Thread.Sleep(1000);
-                    Leader.LastTargetedPortalOrTransition = null;
+                    Leader.LastTargetedPortalOrTransition = t;
                 }
             }
-        }
-        else if (Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
-        {
-            var t = leaderActor.CurrentAction?.Target;
-            if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
+
+            // Cas 3 : Le leader vient de prendre un portail et on le suit
+            if (Leader.LastTargetedPortalOrTransition != null && Leader.LeaderCurrentArea == GameController.Area.CurrentArea.Name)
             {
-                Leader.LastTargetedPortalOrTransition = t;
+                Entity MyTarget = null;
+                int maxtattempts = 10;
+                do
+                {
+                    var portalPosition = Leader.LastTargetedPortalOrTransition.PosNum;
+                    var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
+                    if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
+                    {
+                        Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
+                        Input.SetCursorPos(screenPos);
+                        Input.Click(MouseButtons.Left);
+                        MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
+                        maxtattempts--;
+                        Thread.Sleep(100);
+                    }
+                } while ((MyTarget == null || MyTarget != Leader.LastTargetedPortalOrTransition) && maxtattempts > 0);
+                return;
             }
-        }
-        else if (Leader.LastTargetedPortalOrTransition != null && Leader.LeaderCurrentArea == GameController.Area.CurrentArea.Name)
-        {
-            LogMessage("Leader used portal or transition. Attempting to follow.");
-            TryClickLastTargetedPortal();
-        }
-        else
-        {
+
+            // Cas 4 : fallback si rien d’autre ne s’est passé, gérer comportement normal
             ManageLeaderOnSameMap();
         }
-    }
-
-    private void TryClickLastTargetedPortal()
-    {
-        int attempts = 10;
-        var target = Leader.LastTargetedPortalOrTransition;
-        if (target == null) return;
-
-        while (attempts-- > 0)
+        catch (Exception ex)
         {
-            var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(target.PosNum);
-            if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
-            {
-                Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
-                Input.SetCursorPos(screenPos);
-                Input.Click(MouseButtons.Left);
-                Thread.Sleep(100);
-                var myTarget = GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target;
-                if (myTarget == target) break;
-            }
+            LogError($"Error in FollowerBehavior: {ex.Message}\n {ex.ToString()}\n {ex.StackTrace}", 100);
         }
     }
 
