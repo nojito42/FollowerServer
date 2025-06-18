@@ -173,7 +173,7 @@ public class PartyClient(FollowerPlugin plugin)
                 Vector2? worldTarget = actor?.CurrentAction?.Destination.ToVector2Num() ??
                                        pathfinding?.WantMoveToPosition.ToVector2Num();
 
-                if (worldTarget != null)
+                if (worldTarget != null && worldTarget.HasValue && worldTarget != Vector2.Zero)
                 {
                     clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget.Value);
                     _plugin.LogMessage($"Position ajustée : {clickPos} depuis destination.");
