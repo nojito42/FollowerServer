@@ -166,7 +166,8 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                     LogMessage($"Found a valid town portal: {firtstValidAndTargetableTP.RenderName}", 0.5f);
                                     var portalPosition = firtstValidAndTargetableTP.PosNum;
                                     var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
-                                    if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
+                                    if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) &&
+                                        GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target != firtstValidAndTargetableTP)
                                     {
                                         var rect = new SharpDX.RectangleF(
                                             (int)(screenPos.X - 25),
@@ -177,24 +178,24 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                         Graphics.DrawBox(rect, SharpDX.Color.Red);
                                         Input.SetCursorPos(screenPos);
                                         Input.Click(MouseButtons.Left);
-                                        Thread.Sleep(1000);
+                                        Thread.Sleep(100);
                                         return;
                                     }
                                 }
-                                //else
-                                //{
-                                //    // Si pas de portail, on clique sur le leader
-                                //    var leaderTpElement = Leader.Element.Children?[3];
-                                //    if (leaderTpElement != null && leaderTpElement.IsActive)
-                                //    {
-                                //        Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
-                                //        Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
-                                //        Input.Click(MouseButtons.Left);
-                                //        Input.KeyDown(Keys.Enter);
-                                //        Input.KeyUp(Keys.Enter);
-                                //        Thread.Sleep(1000);
-                                //    }
-                                //}
+                                else
+                                {
+                                    // Si pas de portail, on clique sur le leader
+                                    var leaderTpElement = Leader.Element.Children?[3];
+                                    if (leaderTpElement != null && leaderTpElement.IsActive)
+                                    {
+                                        Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+                                        Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+                                        Input.Click(MouseButtons.Left);
+                                        Input.KeyDown(Keys.Enter);
+                                        Input.KeyUp(Keys.Enter);
+                                        Thread.Sleep(1000);
+                                    }
+                                }
                             }
                         }
 
