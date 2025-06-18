@@ -212,6 +212,19 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
     }
+    private DateTime lastActionTime = DateTime.MinValue;
+    private const int ActionCooldownMS = 50;
+
+    private bool TryDoAction(Action act)
+    {
+        if ((DateTime.Now - lastActionTime).TotalMilliseconds < ActionCooldownMS)
+            return false;
+
+        lastActionTime = DateTime.Now;
+        act();
+        return true;
+    }
+
     private void ManageLeaderOnSameMap()
     {
         var leaderEntity = Leader.Entity;
@@ -220,7 +233,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         if (leaderEntity != null)
         {
-
             if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
             {
                 ReleaseKeys();
@@ -232,16 +244,16 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 bool playerisattacking = playeraction == ActionFlags.UsingAbility;
                 lastMoveDelayMS = playerisattacking ? 250f : 20f;
+
                 if (moveSkill != null)
                 {
                     if (lastMoveCheck.AddMilliseconds(lastMoveDelayMS) >= DateTime.Now)
-                    {
                         return;
-                    }
+
                     lastMoveCheck = DateTime.Now;
+
                     var pf = leaderEntity.GetComponent<Pathfinding>();
                     var leaderaction = leaderEntity.GetComponent<Actor>().Action;
-
 
                     if (pf.PathingNodes.Count > 0)
                     {
@@ -249,36 +261,51 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                         if (Settings.PartySubMenu.UseInputManager)
                         {
-                            var castWithPos = GameController.PluginBridge
-                            .GetMethod<Action<Vector2i, uint>>("MagicInput.CastSkillWithPosition");
-                            castWithPos(lastNode, 0x400);
+                            TryDoAction(() =>
+                            {
+                                var castWithPos = GameController.PluginBridge
+                                    .GetMethod<Action<Vector2i, uint>>("MagicInput.CastSkillWithPosition");
+                                castWithPos(lastNode, 0x400);
+                            });
                         }
                         else
                         {
-                            Input.SetCursorPos(GameController.IngameState.Camera.WorldToScreen(GameController.IngameState.Data.ToWorldWithTerrainHeight(lastNode)));
-                            if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
+                            var screenPos = GameController.IngameState.Camera.WorldToScreen(
+                                GameController.IngameState.Data.ToWorldWithTerrainHeight(lastNode));
+
+                            TryDoAction(() =>
                             {
-                                Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
-                            }
+                                Input.SetCursorPos(screenPos);
+                                if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
+                                {
+                                    Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
+                                }
+                            });
                         }
                     }
-                    else if (pf.PathingNodes.Count <= 0 && (!playerisattacking && playerEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value))
+                    else if (!playerisattacking && playerEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
                     {
-
                         if (Settings.PartySubMenu.UseInputManager)
                         {
-                            var castWithPos = GameController.PluginBridge
-                            .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
-                            castWithPos(leaderEntity, 0x400);
+                            TryDoAction(() =>
+                            {
+                                var castWithTarget = GameController.PluginBridge
+                                    .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
+                                castWithTarget(leaderEntity, 0x400);
+                            });
                         }
                         else
                         {
                             var playerscreenpos = GameController.IngameState.Camera.WorldToScreen(leaderEntity.PosNum);
-                            Input.SetCursorPos(playerscreenpos);
-                            if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
+
+                            TryDoAction(() =>
                             {
-                                Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
-                            }
+                                Input.SetCursorPos(playerscreenpos);
+                                if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
+                                {
+                                    Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
+                                }
+                            });
                         }
                     }
                 }
@@ -290,40 +317,11 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     Input.KeyUp((Keys)MoveSkill.Shortcut.MainKey);
                 }
                 ReleaseKeys();
-
             }
-            //var leaderAction = leaderEntity.GetComponent<Actor>().Action;
-            //if (leaderAction == ActionFlags.UsingAbility)
-            //{
-            //    var leaderAbility = leaderEntity.GetComponent<Actor>().CurrentAction;
-            //    if (leaderAbility != null)
-            //    {
-            //        switch (leaderAbility.Skill.Name)
-            //        {
-
-            //            case "Interaction":
-            //                var entitytypeOfInteraction = leaderAbility.Target.Type;
-            //                var worldItemLabel = GameController.IngameState.IngameUi.ItemsOnGroundLabels.FirstOrDefault(x => x.ItemOnGround == leaderAbility.Target);
-            //                var destination = Vector3.Zero;
-            //                var wts = Vector2.Zero;
-
-            //                if (worldItemLabel != null)
-            //                {
-            //                    destination = GameController.IngameState.Data.ToWorldWithTerrainHeight(leaderAbility.Destination);
-            //                    wts = GameController.IngameState.Camera.WorldToScreen(destination);
-            //                }
-            //                else                         
-            //                   wts = worldItemLabel.Label.GetClientRect().Center.ToVector2Num();
-                            
-            //                Input.SetCursorPos(wts);
-            //                Thread.Sleep(25);
-            //                Input.Click(MouseButtons.Left);
-            //                break;
-            //        }
-            //    }
-            //}
         }
     }
+
+
     private void ReleaseKeys()
     {
         if (MoveSkill != null && Input.IsKeyDown((Keys)MoveSkill.Shortcut.MainKey))
