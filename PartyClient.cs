@@ -176,6 +176,11 @@ public class PartyClient(FollowerPlugin plugin)
             float clickY = (input.MouseCoords.Y * clientWindow.Height) - (/*offsetY +*/ _plugin.Settings.PartySubMenu.screenOffsetAdjustementY);
 
             var clickPos = new Vector2(clickX, clickY);
+            if(_plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum).Distance(clickPos)> 100)
+            {
+               clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum);
+                _plugin.LogError($"Clic position ajustée : {clickPos}, Leader Position: {leaderEntity.GridPosNum}.");
+            }
             if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos.ToSharpDx()))
             {
 
