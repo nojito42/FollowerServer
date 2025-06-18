@@ -222,7 +222,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                     Thread.Sleep(100);
 
                                 }
-                            } while (MyTarget == null || (MyTarget != null && MyTarget != Leader.LastTargetedPortalOrTransition) || maxtattempts > 0);
+                            } while ((MyTarget == null || MyTarget != Leader.LastTargetedPortalOrTransition) && maxtattempts > 0);
                             return; // Sort de la méthode après avoir cliqué sur le portail/transition
                         }
                         // Sinon si le leader n'est pas sur la même map
