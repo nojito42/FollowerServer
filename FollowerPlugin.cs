@@ -146,7 +146,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                            
                         };
                                                 
-                        if (GameController.Area.CurrentArea.IsHideout && GameController.IngameState.IngameUi.PartyElement.Information.FirstOrDefault(k => k.Key == Leader.LeaderName).Value.IsInDifferentZone)
+                        if (GameController.Area.CurrentArea.IsHideout && Leader.IsLeaderOnSameMap() == false)
                         {
 
                             LogMessage($"Leader {Leader.LeaderName} need reach it in map?.");
@@ -194,6 +194,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                         Input.KeyDown(Keys.Enter);
                                         Input.KeyUp(Keys.Enter);
                                         Thread.Sleep(1000);
+                                        Leader.LastTargetedPortalOrTransition = null; // Reset after clicking leader
                                     }
                                 }
                             }
