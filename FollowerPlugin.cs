@@ -151,7 +151,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             }
                         }
 
-                        if (!Leader.IsLeaderOnSameMap())
+                        else if (!Leader.IsLeaderOnSameMap() && GameController.Area.CurrentArea.IsHideout)
                         {
                             
                             
