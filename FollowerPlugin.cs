@@ -209,7 +209,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             }
                         }
 
-                        else if (Leader.LastTargetedPortalOrTransition != null && Leader.IsLeaderOnSameMap())
+                        else if (Leader.LastTargetedPortalOrTransition != null && Leader.LeaderCurrentArea == GameController.Area.CurrentArea.Name)
                         {
                             Entity MyTarget = null;
 
