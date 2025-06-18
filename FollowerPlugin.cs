@@ -168,9 +168,24 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                         // Log error (je te laisse tel quel)
                         LogError($"Leader: {Leader.LeaderName} {Leader.Element[0][0]}");
-
+                        if (!Leader.IsLeaderOnSameMap())
+                        {
+                            if (Settings.PartySubMenu.Follow)
+                            {
+                                var leaderTpElement = Leader.Element.Children?[3];
+                                if (leaderTpElement != null && leaderTpElement.IsActive)
+                                {
+                                    Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+                                    Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+                                    Input.Click(MouseButtons.Left);
+                                    Input.KeyDown(Keys.Enter);
+                                    Input.KeyUp(Keys.Enter);
+                                    Thread.Sleep(1000);
+                                }
+                            }
+                        }
                         // Si on a un portail ou transition ciblé
-                        if (Leader.LastTargetedPortalOrTransition != null)
+                        else if (Leader.LastTargetedPortalOrTransition != null)
                         {
                             // On récupère la position monde du portail/transition ciblé
                             var portalPosition = Leader.LastTargetedPortalOrTransition.PosNum; // supposition que Position est un Vector3 ou similaire
@@ -202,22 +217,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             }
                         }
                         // Sinon si le leader n'est pas sur la même map
-                        else if (!Leader.IsLeaderOnSameMap())
-                        {
-                            if (Settings.PartySubMenu.Follow)
-                            {
-                                var leaderTpElement = Leader.Element.Children?[3];
-                                if (leaderTpElement != null && leaderTpElement.IsActive)
-                                {
-                                    Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
-                                    Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
-                                    Input.Click(MouseButtons.Left);
-                                    Input.KeyDown(Keys.Enter);
-                                    Input.KeyUp(Keys.Enter);
-                                    Thread.Sleep(1000);
-                                }
-                            }
-                        }
+                        
                         else
                         {
                             ManageLeaderOnSameMap();
