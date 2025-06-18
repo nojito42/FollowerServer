@@ -178,6 +178,8 @@ public class PartyClient(FollowerPlugin plugin)
                 //{
                 if (_plugin.GameController.Window.GetWindowRectangle().Contains(screenWorldTarget))
                     input.MouseCoords = screenWorldTarget;
+                else
+                    _plugin.LogError($"Action destination hors de l'écran : {screenWorldTarget} pour {leaderEntity.GetComponent<Player>()?.PlayerName} à {leaderEntity.GridPosNum}.");
                 //}
             }
 
