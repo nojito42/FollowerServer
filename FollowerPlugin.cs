@@ -139,7 +139,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         LogMessage($"Leader found: {leaderElement[0].Text}", 0.5f);
                         Leader = new Leader
                         {
-                            LeaderName = leaderElement[0].Text,v
+                            LeaderName = leaderElement[0].Text,
                             Element = leaderElement,
                             
                             LastTargetedPortalOrTransition = null,
