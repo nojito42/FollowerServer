@@ -12,6 +12,8 @@ public class Leader
     public string LeaderName { get; set; }
     public Element Element { get; set; }
 
+    public Entity LastTargetedPortalOrTransition { get; set; }
+
     public Entity Entity => Core.Current.GameController.Entities
         .FirstOrDefault(entity => entity.IsValid && entity.Type == EntityType.Player && entity.GetComponent<Player>().PlayerName == Element[0].Text);
 }

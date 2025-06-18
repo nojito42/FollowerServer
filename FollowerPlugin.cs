@@ -12,11 +12,13 @@ using System.Windows.Forms;
 using GameOffsets.Native;
 using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
+using ExileCore.PoEMemory.MemoryObjects;
 namespace FollowerServer;
 
 public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
     public List<PlayerSkill> FollowerSkills = [];
+    public Entity LastTargetedPortalOrTransition { get; set; } = null;
     public Leader Leader { get; private set; }
     public PlayerSkill MoveSkill => FollowerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
     public PlayerSkill AttackSkill => FollowerSkills.FirstOrDefault(x => x.Skill.Skill.IsAttack || x.Skill.Skill.IsSpell);
@@ -130,11 +132,13 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         SetFollowerSkillsAndShortcuts();
 
+        
+
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground()) return;
 
         if (!GameController.CloseWindowIfOpen())
         {
-            //GetQuestItem();
+            
             if (pt != null)
             {
                 if (Settings.PartySubMenu.PartyMembers.Value != null)
@@ -149,11 +153,56 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         Leader = new Leader
                         {
                             LeaderName = leaderElement[0].Text,
-                            Element = leaderElement
+                            Element = leaderElement,
+                            LastTargetedPortalOrTransition = null
                         };
 
+                        if (Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+                        {
+                            var t = leaderActor.CurrentAction?.Target;
+                            if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
+                            {
+                                Leader.LastTargetedPortalOrTransition = t;
+                            }
+                        }
+
+                        // Log error (je te laisse tel quel)
                         LogError($"Leader: {Leader.LeaderName} {Leader.Element[0][0]}");
-                        if (!Leader.IsLeaderOnSameMap())
+
+                        // Si on a un portail ou transition ciblé
+                        if (Leader.LastTargetedPortalOrTransition != null)
+                        {
+                            // On récupère la position monde du portail/transition ciblé
+                            var portalPosition = Leader.LastTargetedPortalOrTransition.PosNum; // supposition que Position est un Vector3 ou similaire
+
+                            // On convertit en coordonnées écran avec Camera.WorldToScreen
+                            var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
+
+                            if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos)) // vérifier que la conversion est valide
+                            {
+                                // Dessine un cadre rouge autour de la position écran
+                                // On doit définir un rectangle centré sur screenPos (exemple 50x50 px)
+                                var rect = new SharpDX.RectangleF(
+                                    (int)(screenPos.X - 25),
+                                    (int)(screenPos.Y - 25),
+                                    50,
+                                    50
+                                );
+                                Graphics.DrawBox(rect,SharpDX.Color.Red);
+
+                                // Déplace la souris au centre du rectangle
+                                Input.SetCursorPos(screenPos);
+
+                                // Clique gauche + Enter (comme dans ton code)
+                                Input.Click(MouseButtons.Left);
+                              
+
+                                Thread.Sleep(100);
+                                return;
+                            }
+                        }
+                        // Sinon si le leader n'est pas sur la même map
+                        else if (!Leader.IsLeaderOnSameMap())
                         {
                             if (Settings.PartySubMenu.Follow)
                             {
@@ -168,12 +217,12 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                     Thread.Sleep(1000);
                                 }
                             }
-
                         }
                         else
                         {
                             ManageLeaderOnSameMap();
                         }
+
                     }
                 }
             }
