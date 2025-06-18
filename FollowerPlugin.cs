@@ -248,6 +248,10 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
             }
         }
+        else
+        {
+            LogMessage("Flagged panels found, skipping follower behavior.", 0.5f);
+        }
     }
     private DateTime lastActionTime = DateTime.MinValue;
     private const int ActionCooldownMS = 50;
