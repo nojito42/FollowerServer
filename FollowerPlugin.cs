@@ -218,7 +218,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         var playerEntity = GameController.Player;
         SetFollowerSkillsAndShortcuts();
 
-        if (leaderEntity != null && GameController.Area.CurrentArea.IsHideout == false)
+        if (leaderEntity != null)
         {
 
             if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
