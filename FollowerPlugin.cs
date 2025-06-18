@@ -346,6 +346,19 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
             else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
             {
+                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.FindChildRecursive(e=> e.IsVisible && e.TextNoTags.Contains("opt-in", StringComparison.CurrentCultureIgnoreCase));
+                if (opt != null && opt.IsVisible)
+                {
+                    var screenPos = opt.GetClientRect().Center.ToVector2Num();
+                    if (GameController.Window.GetWindowRectangle().Contains(screenPos))
+                    {
+                        Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
+                        Input.SetCursorPos(screenPos);
+                        Thread.Sleep(20);
+                        Input.Click(MouseButtons.Left);
+                        Thread.Sleep(100);
+                    }
+                }
                 if (Input.IsKeyDown((Keys)MoveSkill.Shortcut.MainKey))
                 {
                     Input.KeyUp((Keys)MoveSkill.Shortcut.MainKey);
