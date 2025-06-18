@@ -115,7 +115,7 @@ public class PartyClient(FollowerPlugin plugin)
     private List<PlayerSkill> SetLeaderSkillAndShortCuts()
     {
 
-        var shortcuts = _plugin.shortcuts;// _plugin.GameController.IngameState.ShortcutSettings.Shortcuts;
+        var shortcuts = _plugin.shortcuts;
         var sc = shortcuts.Skip(7).Take(13).ToList();
         var foeskills = new List<PlayerSkill>();
 
@@ -127,10 +127,6 @@ public class PartyClient(FollowerPlugin plugin)
                 Shortcut = sc[i],
                 Skill = skillBarSkill
             });
-        }
-        foreach (var skill in foeskills)
-        {
-            _plugin.LogMessage(skill.ToString());
         }
         return foeskills;
     }

@@ -39,7 +39,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         if (sc == null || sc.Count <= 5)
         {
-            LogError("No shortcuts found. Please check your game settings.", 100);
             var address = GameController.IngameState.ShortcutSettings.Address;
             //int maxTries = 10000;
             //int tries = 0;
@@ -89,24 +88,9 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override Job Tick()
     {
-
-        var scs = GameController.IngameState.ShortcutSettings.Shortcuts;
-
-        foreach (var sc in scs)
-        {
-            LogMessage(sc.ToString());
-        }
-
-
         var pt = GameController.Party();
 
         Settings.PartySubMenu.PartyMembers.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
-
-        //foreach(var p in pt[0].Children)
-        //{
-        //    LogMessage(p[0].Text);
-        //}
-
         if (Settings.ServerSubMenu.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
@@ -147,10 +131,8 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     pt ??= GameController.Party();
 
                     var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.PartySubMenu.PartyMembers.Value);
-                    LogMessage($"Leaderelasdfasd:{leaderElement.ChildCount}");
                     if (leaderElement != null )
                     {
-                        LogMessage($"Leaderel: {leaderElement[0].Text} {leaderElement[0].ChildCount}");
                         Leader = new Leader
                         {
                             LeaderName = leaderElement[0].Text,
@@ -167,8 +149,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             }
                         }
 
-                        // Log error (je te laisse tel quel)
-                        LogError($"Leader: {Leader.LeaderName} {Leader.Element[0][0]}");
                         if (!Leader.IsLeaderOnSameMap())
                         {
                             if (Settings.PartySubMenu.Follow)
@@ -185,26 +165,22 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                 }
                             }
                         }
-                        // Si on a un portail ou transition ciblé
                         else if (Leader.LastTargetedPortalOrTransition != null && Leader.IsLeaderOnSameMap())
                         {
                             Entity MyTarget = null;
 
-                            int maxtattempts = 10; // Nombre maximum de tentatives pour cliquer sur le portail/transition
+                            int maxtattempts = 10;
                             do
                             {
 
 
-                                // On récupère la position monde du portail/transition ciblé
-                                var portalPosition = Leader.LastTargetedPortalOrTransition.PosNum; // supposition que Position est un Vector3 ou similaire
+                                var portalPosition = Leader.LastTargetedPortalOrTransition.PosNum;
 
-                                // On convertit en coordonnées écran avec Camera.WorldToScreen
                                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
 
-                                if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos)) // vérifier que la conversion est valide
+                                if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
                                 {
-                                    // Dessine un cadre rouge autour de la position écran
-                                    // On doit définir un rectangle centré sur screenPos (exemple 50x50 px)
+                                 
                                     var rect = new SharpDX.RectangleF(
                                         (int)(screenPos.X - 25),
                                         (int)(screenPos.Y - 25),
@@ -213,10 +189,8 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                     );
                                     Graphics.DrawBox(rect, SharpDX.Color.Red);
 
-                                    // Déplace la souris au centre du rectangle
                                     Input.SetCursorPos(screenPos);
 
-                                    // Clique gauche + Enter (comme dans ton code)
                                     Input.Click(MouseButtons.Left);
                                     MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
                                     maxtattempts--;
@@ -246,7 +220,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         if (leaderEntity != null && GameController.Area.CurrentArea.IsHideout == false)
         {
-            LogError($"Leader: {Leader.LeaderName}");
 
             if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
             {
@@ -322,23 +295,15 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             var leaderAction = leaderEntity.GetComponent<Actor>().Action;
             if (leaderAction == ActionFlags.UsingAbility)
             {
-                LogMessage("Leader is using ability");
                 var leaderAbility = leaderEntity.GetComponent<Actor>().CurrentAction;
                 if (leaderAbility != null)
                 {
-                    LogMessage(leaderAbility.Skill.Name + " -----------ouat--- " + leaderAbility.Skill.Id);
                     switch (leaderAbility.Skill.Name)
                     {
 
                         case "Interaction":
                             var entitytypeOfInteraction = leaderAbility.Target.Type;
-
-
-
-                            LogError($"Interaction: {entitytypeOfInteraction}");
-
                             var worldItemLabel = GameController.IngameState.IngameUi.ItemsOnGroundLabels.FirstOrDefault(x => x.ItemOnGround == leaderAbility.Target);
-
                             var destination = Vector3.Zero;
                             var wts = Vector2.Zero;
 
@@ -346,13 +311,10 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             {
                                 destination = GameController.IngameState.Data.ToWorldWithTerrainHeight(leaderAbility.Destination);
                                 wts = GameController.IngameState.Camera.WorldToScreen(destination);
-
                             }
-                            else
-                            {
-                                wts = worldItemLabel.Label.GetClientRect().Center.ToVector2Num();
-                            }
-
+                            else                         
+                               wts = worldItemLabel.Label.GetClientRect().Center.ToVector2Num();
+                            
                             Input.SetCursorPos(wts);
                             Thread.Sleep(25);
                             Input.Click(MouseButtons.Left);
@@ -376,36 +338,22 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void SetFollowerSkillsAndShortcuts()
     {
-
-
-        LogMessage(shortcuts.Count + " WTF" + "");
-
-        //shortcuts.ToList().ForEach(x => LogMessage(x.ToString()));
         var sc = shortcuts.Skip(7).Take(13).ToList();
         FollowerSkills.Clear();
 
         for (int i = 0; i < sc.Count; i++)
         {
-            //if (GameController.IngameState.IngameUi.SkillBar.Skills[i].Skill.Id <= 0) continue;
-            LogMessage(GameController.IngameState.IngameUi.SkillBar.Skills[i].Skill.Name + " PIPI");
-
             FollowerSkills.Add(new PlayerSkill
             {
                 Shortcut = sc[i],
                 Skill = GameController.IngameState.IngameUi.SkillBar.Skills[i]
             });
         }
-        foreach (var skill in FollowerSkills)
-        {
-            LogMessage(skill.Skill.Skill + " CACA");
-        }
     }
     private void ConnectToPartyServer()
     {
         if (PartyClient.IsConnected && !Settings.ServerSubMenu.ToggleLeaderServer)
         {
-            LogError("Joining server...");
-
             PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
             return;
         }
@@ -438,7 +386,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         for (int i = 0; i < sc.Count; i++)
         {
             var skillBarSkill = GameController.IngameState.IngameUi.SkillBar.Skills[i];
-            // LogMessage($"Skill: {sc[i]}");
             LeaderSkills.Add(new PlayerSkill
             {
                 Shortcut = sc[i],
@@ -476,41 +423,29 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         else
         {
-            foreach (var foe in foeSkill)
-            {
-                LogMessage(foe.ToString() + " azertyuiop");
-            }
             if (DateTime.Now.Subtract(LastLeaderInput).TotalMilliseconds < Settings.ServerSubMenu.ServerTick)
             {
-                LogMessage("Too fast input");
                 return;
             }
 
             LastLeaderInput = DateTime.Now; // Move this here, before processing multiple skills
-
-            foreach (var foe in foeSkill)
-            {
-                LogMessage(foe.ToString() + " azertyuiop");
-            }
-
             var mouseCoords = Input.MousePositionNum;
             var currentSkill = GameController.Player.GetComponent<Actor>().CurrentAction?.Skill;
             var window = GameController.Window.GetWindowRectangleTimeCache;
 
-            if (GameController.Player.GetComponent<Actor>().Action == (ActionFlags)16386 ||
-                (currentSkill != null && currentSkill.Name.Contains("BlinkPlayer")))
-            {
-                LeaderInput rollInput = new()
-                {
-                    LeaderName = GameController.Player.GetComponent<Player>().PlayerName,
-                    RawInput = "Roll",
-                    MouseCoords = new(mouseCoords.X / window.Width, mouseCoords.Y / window.Height),
-                };
-                PartyServer.BroadcastLeaderInput(rollInput);
+            //if (GameController.Player.GetComponent<Actor>().Action == (ActionFlags)16386 ||
+            //    (currentSkill != null && currentSkill.Name.Contains("BlinkPlayer")))
+            //{
+            //    LeaderInput rollInput = new()
+            //    {
+            //        LeaderName = GameController.Player.GetComponent<Player>().PlayerName,
+            //        RawInput = "Roll",
+            //        MouseCoords = new(mouseCoords.X / window.Width, mouseCoords.Y / window.Height),
+            //    };
+            //    PartyServer.BroadcastLeaderInput(rollInput);
 
-                LogMessage("Rolling");
-                return;
-            }
+            //    return;
+            //}
             if (GameController.Area.CurrentArea.IsHideout)
             {
                 return;
