@@ -138,12 +138,12 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (leaderElement == null)
                 return;
 
-            Leader = new Leader
-            {
-                LeaderName = leaderElement[0].Text,
-                Element = leaderElement,
-                LastTargetedPortalOrTransition = Leader?.LastTargetedPortalOrTransition // conserve ancien si présent
-            };
+        Leader = new Leader
+        {
+            LeaderName = leaderElement[0].Text,
+            Element = leaderElement,
+            LastTargetedPortalOrTransition = null
+        };
 
             // Cas 1 : On est en hideout, et le leader est en map
             if (GameController.Area.CurrentArea.IsHideout && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
