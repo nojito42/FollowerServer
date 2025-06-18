@@ -346,7 +346,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
             else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
             {
-                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount ==3).FirstOrDefault();
+                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.Children.Where(c => c.ChildCount ==3).FirstOrDefault();
                 if (opt != null)
                 {
                     LogError($"Found item on ground: {opt}", 100);
