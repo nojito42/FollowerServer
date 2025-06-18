@@ -189,9 +189,26 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     }
                 }
             }
+        //cas 5 : Leader n'est pas du tout sur la même map
+        if (Leader != null && Leader.Entity != null && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name && GameController.Area.CurrentArea.IsHideout == false)
+        {
 
-            // Cas 2 : Leader est sur la même map et utilise une transition ou un portail
-            if (Leader != null && Leader.IsLeaderOnSameMap() && Leader.Entity != null && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+
+            var leaderTpElement = Leader.Element.Children?[3];
+            if (leaderTpElement?.IsActive == true)
+            {
+                Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+                Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+                Input.Click(MouseButtons.Left);
+                Input.KeyDown(Keys.Enter);
+                Input.KeyUp(Keys.Enter);
+                Thread.Sleep(1000);
+                Leader.LastTargetedPortalOrTransition = null;
+                return;
+            }
+        }
+        // Cas 2 : Leader est sur la même map et utilise une transition ou un portail
+        if (Leader != null && Leader.IsLeaderOnSameMap() && Leader.Entity != null && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
             {
                 var t = leaderActor.CurrentAction?.Target;
                 if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
@@ -222,24 +239,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 return;
             }
 
-        //cas 5 : Leader n'est pas du tout sur la même map
-        if (Leader != null && Leader.Entity != null && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
-        {
-
-
-            var leaderTpElement = Leader.Element.Children?[3];
-            if (leaderTpElement?.IsActive == true)
-            {
-                Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
-                Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
-                Input.Click(MouseButtons.Left);
-                Input.KeyDown(Keys.Enter);
-                Input.KeyUp(Keys.Enter);
-                Thread.Sleep(1000);
-                Leader.LastTargetedPortalOrTransition = null;
-                return;
-            }
-        }
+        
         // Cas 4 : fallback si rien d’autre ne s’est passé, gérer comportement normal
         ManageLeaderOnSameMap();
         
