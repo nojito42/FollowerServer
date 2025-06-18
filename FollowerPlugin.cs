@@ -292,36 +292,36 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 ReleaseKeys();
 
             }
-            var leaderAction = leaderEntity.GetComponent<Actor>().Action;
-            if (leaderAction == ActionFlags.UsingAbility)
-            {
-                var leaderAbility = leaderEntity.GetComponent<Actor>().CurrentAction;
-                if (leaderAbility != null)
-                {
-                    switch (leaderAbility.Skill.Name)
-                    {
+            //var leaderAction = leaderEntity.GetComponent<Actor>().Action;
+            //if (leaderAction == ActionFlags.UsingAbility)
+            //{
+            //    var leaderAbility = leaderEntity.GetComponent<Actor>().CurrentAction;
+            //    if (leaderAbility != null)
+            //    {
+            //        switch (leaderAbility.Skill.Name)
+            //        {
 
-                        case "Interaction":
-                            var entitytypeOfInteraction = leaderAbility.Target.Type;
-                            var worldItemLabel = GameController.IngameState.IngameUi.ItemsOnGroundLabels.FirstOrDefault(x => x.ItemOnGround == leaderAbility.Target);
-                            var destination = Vector3.Zero;
-                            var wts = Vector2.Zero;
+            //            case "Interaction":
+            //                var entitytypeOfInteraction = leaderAbility.Target.Type;
+            //                var worldItemLabel = GameController.IngameState.IngameUi.ItemsOnGroundLabels.FirstOrDefault(x => x.ItemOnGround == leaderAbility.Target);
+            //                var destination = Vector3.Zero;
+            //                var wts = Vector2.Zero;
 
-                            if (worldItemLabel != null)
-                            {
-                                destination = GameController.IngameState.Data.ToWorldWithTerrainHeight(leaderAbility.Destination);
-                                wts = GameController.IngameState.Camera.WorldToScreen(destination);
-                            }
-                            else                         
-                               wts = worldItemLabel.Label.GetClientRect().Center.ToVector2Num();
+            //                if (worldItemLabel != null)
+            //                {
+            //                    destination = GameController.IngameState.Data.ToWorldWithTerrainHeight(leaderAbility.Destination);
+            //                    wts = GameController.IngameState.Camera.WorldToScreen(destination);
+            //                }
+            //                else                         
+            //                   wts = worldItemLabel.Label.GetClientRect().Center.ToVector2Num();
                             
-                            Input.SetCursorPos(wts);
-                            Thread.Sleep(25);
-                            Input.Click(MouseButtons.Left);
-                            break;
-                    }
-                }
-            }
+            //                Input.SetCursorPos(wts);
+            //                Thread.Sleep(25);
+            //                Input.Click(MouseButtons.Left);
+            //                break;
+            //        }
+            //    }
+            //}
         }
     }
     private void ReleaseKeys()
