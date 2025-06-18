@@ -136,12 +136,12 @@ public class PartyClient(FollowerPlugin plugin)
         try
         {
             if (_plugin.GameController.Area.CurrentArea.IsHideout)
-            {
                 return;
-            }
+
             Entity leaderEntity = _plugin.GameController.Entities?
                 .FirstOrDefault(x => x.Type == ExileCore.Shared.Enums.EntityType.Player &&
                                      x.GetComponent<Player>()?.PlayerName == input.LeaderName);
+
             var followerSkills = SetLeaderSkillAndShortCuts();
             var scsAll = _plugin.shortcuts;
             var scs = scsAll.Skip(7).Take(13).ToList();
@@ -157,53 +157,68 @@ public class PartyClient(FollowerPlugin plugin)
             }
 
             if (leaderEntity == null)
-            {
                 return;
-            }
+
             if (_plugin.Settings.PartySubMenu.FollowInTown == false && _plugin.GameController.Area.CurrentArea.IsTown || MenuWindow.IsOpened)
-            {
                 return;
-            }
 
             var actionDestination = leaderEntity.GetComponent<Actor>()?.CurrentAction?.Destination;
-
-            if (actionDestination != null)
-                input.MouseCoords = _plugin.GameController.IngameState.Data.GetGridScreenPosition(actionDestination.Value.ToVector2Num());
-
-            Vector2 clickPos;
-            var clientWindow = _plugin.GameController.Window.GetWindowRectangleTimeCache;
             Vector2 leaderScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(leaderEntity.PosNum);
             Vector2 followerScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(_plugin.GameController.Player.PosNum);
 
-            if(actionDestination == null || actionDestination == Vector2i.Zero) { 
-            float offsetX = followerScreenPos.X - leaderScreenPos.X;
-            float offsetY = followerScreenPos.Y - leaderScreenPos.Y;
+            if (actionDestination != null && actionDestination.HasValue)
+            {
+                var worldTarget = actionDestination.Value.ToVector2Num();
+                var screenDistance = followerScreenPos.Distance(leaderScreenPos);
+                if (screenDistance < 1000) // éviter les positions trop éloignées ou invalides
+                {
+                    input.MouseCoords = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
+                }
+            }
 
-            float clickX = (input.MouseCoords.X * clientWindow.Width) - (offsetX + _plugin.Settings.PartySubMenu.screenOffsetAdjustementX);
-            float clickY = (input.MouseCoords.Y * clientWindow.Height) - (offsetY + _plugin.Settings.PartySubMenu.screenOffsetAdjustementY);
+            if (input.MouseCoords == Vector2.Zero)
+            {
+                _plugin.LogError("MouseCoords vide, annulation du clic");
+                return;
+            }
 
-             clickPos = new Vector2(clickX, clickY);
+            Vector2 clickPos;
+            var clientWindow = _plugin.GameController.Window.GetWindowRectangleTimeCache;
+
+            if (actionDestination == null || actionDestination == Vector2i.Zero)
+            {
+                float offsetX = followerScreenPos.X - leaderScreenPos.X;
+                float offsetY = followerScreenPos.Y - leaderScreenPos.Y;
+
+                float clickX = (input.MouseCoords.X * clientWindow.Width) - (offsetX + _plugin.Settings.PartySubMenu.screenOffsetAdjustementX);
+                float clickY = (input.MouseCoords.Y * clientWindow.Height) - (offsetY + _plugin.Settings.PartySubMenu.screenOffsetAdjustementY);
+
+                clickPos = new Vector2(clickX, clickY);
             }
             else
             {
                 clickPos = input.MouseCoords;
             }
+
             if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos.ToSharpDx()))
             {
-
                 Input.SetCursorPos(clickPos);
                 Thread.Sleep(10);
             }
+
             if (int.TryParse(input.RawInput, out var i2))
             {
                 i = i2;
-                var sc = scs[i];
-                if (i > 0)
+                if (i >= 0 && i < scs.Count)
                 {
+                    var sc = scs[i];
                     sc.PressShortCut(10);
                 }
+                else
+                {
+                    _plugin.LogError($"Index de raccourci invalide : {i}");
+                }
             }
-
         }
         catch (Exception ex)
         {
