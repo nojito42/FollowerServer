@@ -115,7 +115,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         LogMessage("FollowerBehavior Tick", 0.5f);
 
         var pt = GameController.Party();
-        if (pt == null || pt.Count == 0 || pt[0]?.Children == null)
+        if (pt == null || pt.ChildCount == 0 || pt[0]?.Children == null)
         {
             LogMessage("No party found or invalid party UI.");
             return;
