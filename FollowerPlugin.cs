@@ -121,7 +121,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         
 
-        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground()) return;
+        //if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground()) return;
         LogMessage("Checking for flagged panels...", 0.5f);
         if (!GameController.CloseWindowIfOpen())
         {
