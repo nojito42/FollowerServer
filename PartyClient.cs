@@ -204,7 +204,7 @@ public class PartyClient(FollowerPlugin plugin)
             {
                 clickPos = input.MouseCoords;
             }
-            _plugin.LogMessage($"Clic position: {clickPos}, Leader Position: {leaderEntity.GridPosNum}, Distance: {clickPos.Distance(leaderEntity.GridPosNum)}");
+            _plugin.LogMessage($"Clic position: {clickPos}, Leader Position: {leaderEntity.GridPosNum}, Distance: {clickPos.Distance(actionDestination.Value)}");
             if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos) || clickPos.Distance(leaderEntity.GridPosNum) <=10)
             {
                 Input.SetCursorPos(clickPos);
