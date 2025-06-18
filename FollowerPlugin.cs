@@ -346,7 +346,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
             else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
             {
-                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount ==3 && c.ToString().Contains("Element")).FirstOrDefault();
+                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount ==3).FirstOrDefault();
                 if (opt != null)
                 {
                     LogError($"Found item on ground: {opt}", 100);
@@ -361,6 +361,9 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         Thread.Sleep(100);
                     }
                 }
+                else
+                 LogError("No items on ground found.", 100);
+
                 if (Input.IsKeyDown((Keys)MoveSkill.Shortcut.MainKey))
                 {
                     Input.KeyUp((Keys)MoveSkill.Shortcut.MainKey);
