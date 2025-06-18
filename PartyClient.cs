@@ -136,115 +136,73 @@ public class PartyClient(FollowerPlugin plugin)
     {
         try
         {
-            if (_plugin.GameController.Area.CurrentArea.IsHideout)
+            if (_plugin.GameController.Area.CurrentArea.IsHideout ||
+                (_plugin.Settings.PartySubMenu.FollowInTown == false && _plugin.GameController.Area.CurrentArea.IsTown) ||
+                MenuWindow.IsOpened)
             {
                 return;
             }
-            Entity leaderEntity = _plugin.GameController.Entities?
+
+            if (!int.TryParse(input.RawInput, out var inputIndex) || inputIndex <= 0)
+            {
+                _plugin.LogError($"Input non reconnu ou invalide : {input.RawInput}");
+                return;
+            }
+
+            var leaderEntity = _plugin.GameController.Entities?
                 .FirstOrDefault(x => x.Type == ExileCore.Shared.Enums.EntityType.Player &&
                                      x.GetComponent<Player>()?.PlayerName == input.LeaderName);
-            var followerSkills = SetLeaderSkillAndShortCuts();
-            var scsAll = _plugin.shortcuts;
-            var scs = scsAll.Skip(7).Take(13).ToList();
-            var i = -1;
+            if (leaderEntity == null) return;
 
-            if (int.TryParse(input.RawInput, out var i1))
-            {
-                if (i1 <= 0)
-                {
-                    _plugin.LogError($"Input non reconnu : {input.RawInput}");
-                    return;
-                }
-            }
-
-            if (leaderEntity == null)
-            {
-                return;
-            }
-            if (_plugin.Settings.PartySubMenu.FollowInTown == false && _plugin.GameController.Area.CurrentArea.IsTown || MenuWindow.IsOpened)
-            {
-                return;
-            }
             var clientWindow = _plugin.GameController.Window.GetWindowRectangleTimeCache;
-            //Vector2 leaderScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(leaderEntity.PosNum);
-            //Vector2 followerScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(_plugin.GameController.Player.PosNum);
+            var mouse = input.MouseCoords;
 
-            //float offsetX = followerScreenPos.X - leaderScreenPos.X;
-            //float offsetY = followerScreenPos.Y - leaderScreenPos.Y;
-
-            float clickX = (input.MouseCoords.X * clientWindow.Width) - (/*offsetX + */_plugin.Settings.PartySubMenu.screenOffsetAdjustementX);
-            float clickY = (input.MouseCoords.Y * clientWindow.Height) - (/*offsetY +*/ _plugin.Settings.PartySubMenu.screenOffsetAdjustementY);
-
+            float clickX = (mouse.X * clientWindow.Width) - _plugin.Settings.PartySubMenu.screenOffsetAdjustementX;
+            float clickY = (mouse.Y * clientWindow.Height) - _plugin.Settings.PartySubMenu.screenOffsetAdjustementY;
             var clickPos = new Vector2(clickX, clickY);
 
-            _plugin.LogMessage($"Clic DISTANCE: {_plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum).Distance(clickPos)}");
-            if (_plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum).Distance(clickPos)> 100)
+            var leaderPos = leaderEntity.GridPosNum;
+            var leaderScreenPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderPos);
+            var distance = leaderScreenPos.Distance(clickPos);
+
+            if (distance > 100)
             {
-                var destination = leaderEntity.GetComponent<Actor>()?.CurrentAction?.Destination;
-                var pathDestination = leaderEntity.GetComponent<Pathfinding>()?.WantMoveToPosition;
-                if (destination != null && destination.HasValue)
+                var actor = leaderEntity.GetComponent<Actor>();
+                var pathfinding = leaderEntity.GetComponent<Pathfinding>();
+
+                Vector2? worldTarget = actor?.CurrentAction?.Destination.ToVector2Num() ??
+                                       pathfinding?.WantMoveToPosition.ToVector2Num();
+
+                if (worldTarget != null)
                 {
-                    var worldTarget = destination.Value.ToVector2Num();
-                    clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
-                    _plugin.LogMessage($"Clic ajusté à la destination : {clickPos}, Leader Position: {leaderEntity.GridPosNum}.");
-                }
-                else if (pathDestination != null && pathDestination.HasValue)
-                {
-                    var worldTarget = pathDestination.Value.ToVector2Num();
-                    clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
-                    _plugin.LogMessage($"Clic ajusté à la position de pathfinding : {clickPos}, Leader Position: {leaderEntity.GridPosNum}.");
+                    clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget.Value);
+                    _plugin.LogMessage($"Position ajustée : {clickPos} depuis destination.");
                 }
                 else
                 {
-                    clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum);
-                    _plugin.LogError($"Clic position ajustée a position du bonhomme : {clickPos}, Leader Position: {leaderEntity.GridPosNum}.");
+                    clickPos = leaderScreenPos;
+                    _plugin.LogError($"Ajustement par défaut à la position du leader : {clickPos}.");
                 }
-             
             }
-            if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos.ToSharpDx()))
-            {
 
+            if (clientWindow.Contains(clickPos.ToSharpDx()))
+            {
                 Input.SetCursorPos(clickPos);
                 Thread.Sleep(10);
             }
-            //if (input.RawInput.Contains("Roll") && _plugin.Settings.PartySubMenu.DodgeRollWithLeader)
-            //{
-            //    Thread.Sleep(5);
-            //    _plugin.DodgeRoll.PressShortCut(10);
-            //    return;
-            //}
-            //else if (input.RawInput.Contains("AttackInPlace"))
-            //{
-            //    var sc = _plugin.GetShortcutByNameContains("(25/");
 
-            //    if (input.Pressed)
-            //    {
-            //        Input.KeyDown((Keys)sc.MainKey);
-            //        _plugin.LogError($"KeyDown : {sc.MainKey}");
-            //    }
-            //    else
-            //    {
-            //        Input.KeyUp((Keys)sc.MainKey);
-            //        _plugin.LogError($"KeyUp : {sc.MainKey}");
-            //    }
-            //}
-
-            if (int.TryParse(input.RawInput, out var i2))
+            var scs = _plugin.shortcuts.Skip(7).Take(13).ToList();
+            if (inputIndex < scs.Count)
             {
-                i = i2;
-                var sc = scs[i];
-                if (i > 0)
-                {
-                    sc.PressShortCut(10);
-                }
+                scs[inputIndex].PressShortCut(10);
             }
-
         }
         catch (Exception ex)
         {
             _plugin.LogError($"Erreur lors du traitement de l'input : {ex}");
         }
     }
+
 
     //private void ProcessLeaderInput(LeaderInput input)
     //{
