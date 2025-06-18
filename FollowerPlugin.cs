@@ -126,6 +126,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             
             if (pt != null)
             {
+                LogMessage($"Found {pt.ChildCount} party members.", 0.5f);
                 if (Settings.PartySubMenu.PartyMembers.Value != null)
                 {
                     pt ??= GameController.Party();
@@ -133,6 +134,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.PartySubMenu.PartyMembers.Value);
                     if (leaderElement != null )
                     {
+                        LogMessage($"Leader found: {leaderElement[0].Text}", 0.5f);
                         Leader = new Leader
                         {
                             LeaderName = leaderElement[0].Text,
