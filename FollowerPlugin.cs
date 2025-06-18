@@ -228,7 +228,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         catch (Exception ex)
         {
-            LogError($"Error in FollowerBehavior: {ex.Message}", 100);
+            LogError($"Error in FollowerBehavior: {ex.Message}\n {ex.ToString()}\n {ex.StackTrace}", 100);
         }
     }
 
