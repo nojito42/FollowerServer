@@ -347,11 +347,12 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
             {
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.FindChildRecursive(e=> e.ToString().Contains("opt-in", StringComparison.CurrentCultureIgnoreCase));
-                if (opt != null && opt.IsVisible)
+                if (opt != null)
                 {
                     var screenPos = opt.GetClientRect().Center.ToVector2Num();
                     if (GameController.Window.GetWindowRectangle().Contains(screenPos))
                     {
+
                         Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                         Input.SetCursorPos(screenPos);
                         Thread.Sleep(20);
