@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using FollowerPlugin;
 using System.Windows.Forms;
 using ExileCore.Shared.Helpers;
+using GameOffsets.Native;
 
 namespace FollowerServer;
 
@@ -163,17 +164,30 @@ public class PartyClient(FollowerPlugin plugin)
             {
                 return;
             }
+
+            var actionDestination = leaderEntity.GetComponent<Actor>()?.CurrentAction?.Destination;
+
+            if (actionDestination != null)
+                input.MouseCoords = _plugin.GameController.IngameState.Data.GetGridScreenPosition(actionDestination.Value.ToVector2Num());
+
+            Vector2 clickPos;
             var clientWindow = _plugin.GameController.Window.GetWindowRectangleTimeCache;
             Vector2 leaderScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(leaderEntity.PosNum);
             Vector2 followerScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(_plugin.GameController.Player.PosNum);
 
+            if(actionDestination == null || actionDestination == Vector2i.Zero) { 
             float offsetX = followerScreenPos.X - leaderScreenPos.X;
             float offsetY = followerScreenPos.Y - leaderScreenPos.Y;
 
             float clickX = (input.MouseCoords.X * clientWindow.Width) - (offsetX + _plugin.Settings.PartySubMenu.screenOffsetAdjustementX);
             float clickY = (input.MouseCoords.Y * clientWindow.Height) - (offsetY + _plugin.Settings.PartySubMenu.screenOffsetAdjustementY);
 
-            var clickPos = new Vector2(clickX, clickY);
+             clickPos = new Vector2(clickX, clickY);
+            }
+            else
+            {
+                clickPos = input.MouseCoords;
+            }
             if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos.ToSharpDx()))
             {
 
