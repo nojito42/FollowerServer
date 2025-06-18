@@ -112,6 +112,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void FollowerBehavior()
     {
+        LogMessage("FollowerBehavior Tick", 0.5f);
         var pt = GameController.Party();
         Settings.PartySubMenu.PartyMembers.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
 
