@@ -346,7 +346,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
             else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
             {
-                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].FindChildRecursive(e=> e != null && e.IsVisible && e.ToString().Contains("opt-in", StringComparison.CurrentCultureIgnoreCase));
+                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.FindChildRecursive(e=> e.ToString().Contains("opt-in", StringComparison.CurrentCultureIgnoreCase));
                 if (opt != null && opt.IsVisible)
                 {
                     var screenPos = opt.GetClientRect().Center.ToVector2Num();
