@@ -176,10 +176,30 @@ public class PartyClient(FollowerPlugin plugin)
             float clickY = (input.MouseCoords.Y * clientWindow.Height) - (/*offsetY +*/ _plugin.Settings.PartySubMenu.screenOffsetAdjustementY);
 
             var clickPos = new Vector2(clickX, clickY);
-            if(_plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum).Distance(clickPos)> 100)
+
+            _plugin.LogMessage($"Clic DISTANCE: {_plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum).Distance(clickPos)}");
+            if (_plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum).Distance(clickPos)> 100)
             {
-               clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum);
-                _plugin.LogError($"Clic position ajustée : {clickPos}, Leader Position: {leaderEntity.GridPosNum}.");
+                var destination = leaderEntity.GetComponent<Actor>()?.CurrentAction?.Destination;
+                var pathDestination = leaderEntity.GetComponent<Pathfinding>()?.WantMoveToPosition;
+                if (destination != null && destination.HasValue)
+                {
+                    var worldTarget = destination.Value.ToVector2Num();
+                    clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
+                    _plugin.LogMessage($"Clic ajusté à la destination : {clickPos}, Leader Position: {leaderEntity.GridPosNum}.");
+                }
+                else if (pathDestination != null && pathDestination.HasValue)
+                {
+                    var worldTarget = pathDestination.Value.ToVector2Num();
+                    clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
+                    _plugin.LogMessage($"Clic ajusté à la position de pathfinding : {clickPos}, Leader Position: {leaderEntity.GridPosNum}.");
+                }
+                else
+                {
+                    clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum);
+                    _plugin.LogError($"Clic position ajustée a position du bonhomme : {clickPos}, Leader Position: {leaderEntity.GridPosNum}.");
+                }
+             
             }
             if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos.ToSharpDx()))
             {
