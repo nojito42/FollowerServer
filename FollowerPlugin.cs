@@ -112,8 +112,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void FollowerBehavior()
     {
-        try
-        {
+       
             LogMessage("FollowerBehavior Tick", 0.5f);
             var pt = GameController.Party();
             Settings.PartySubMenu.PartyMembers.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
@@ -225,11 +224,8 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
             // Cas 4 : fallback si rien d’autre ne s’est passé, gérer comportement normal
             ManageLeaderOnSameMap();
-        }
-        catch (Exception ex)
-        {
-            LogError($"Error in FollowerBehavior: {ex.Message}\n {ex.ToString()}\n {ex.StackTrace}", 100);
-        }
+        
+       
     }
 
     private DateTime lastActionTime = DateTime.MinValue;
