@@ -146,7 +146,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                            
                         };
                                                 
-                        if (GameController.Area.CurrentArea.IsHideout && Leader.IsLeaderOnSameMap() == false)
+                        if (GameController.Area.CurrentArea.IsHideout && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
                         {
 
                             LogMessage($"Leader {Leader.LeaderName} need reach it in map?.");
