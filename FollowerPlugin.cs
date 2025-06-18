@@ -124,7 +124,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         if (!GameController.CloseWindowIfOpen())
         {
-            
+            LogMessage("No flagged panels found, continuing...", 0.5f);
             if (pt != null)
             {
                 LogMessage($"Found {pt.ChildCount} party members.", 0.5f);
