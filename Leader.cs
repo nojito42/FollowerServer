@@ -16,5 +16,5 @@ public class Leader
     public string LeaderCurrentArea => Element?.ChildCount ==4 ? Element.Children[2].Text : Core.Current.GameController.Area.CurrentArea.Name;
 
     public Entity Entity => Core.Current.GameController.Entities
-        .FirstOrDefault(entity => entity.IsValid && entity.Type == EntityType.Player && entity.GetComponent<Player>().PlayerName == Element[0].Text);
+        .FirstOrDefault(entity => entity != null && entity.IsValid && entity.Type == EntityType.Player && entity.GetComponent<Player>().PlayerName == Element[0].Text);
 }
