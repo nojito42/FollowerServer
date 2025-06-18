@@ -147,7 +147,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                     var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.PartySubMenu.PartyMembers.Value);
                     LogMessage($"Leaderelasdfasd:{leaderElement.ChildCount}");
-                    if (leaderElement != null && Leader.IsLeaderOnSameMap())
+                    if (leaderElement != null )
                     {
                         LogMessage($"Leaderel: {leaderElement[0].Text} {leaderElement[0].ChildCount}");
                         Leader = new Leader
@@ -157,7 +157,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             LastTargetedPortalOrTransition = null
                         };
 
-                        if (Leader.Entity != null && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+                        if (Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
                         {
                             var t = leaderActor.CurrentAction?.Target;
                             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
