@@ -139,14 +139,14 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         LogMessage($"Leader found: {leaderElement[0].Text}", 0.5f);
                         Leader = new Leader
                         {
-                            LeaderName = leaderElement[0].Text,
+                            LeaderName = leaderElement[0].Text,v
                             Element = leaderElement,
                             
                             LastTargetedPortalOrTransition = null,
                            
                         };
                                                 
-                        if (GameController.Area.CurrentArea.IsHideout && GameController.IngameState.IngameUi.PartyElement.Information.FirstOrDefault(k => k.Key == Leader.LeaderName).Value.IsInDifferentZone)
+                        if (GameController.Area.CurrentArea.IsHideout /*&& GameController.IngameState.IngameUi.PartyElement.Information.FirstOrDefault(k => k.Key == Leader.LeaderName).Value.IsInDifferentZone*/)
                         {
 
                             LogMessage($"Leader {Leader.LeaderName} need reach it in map?.", 0.5f);
