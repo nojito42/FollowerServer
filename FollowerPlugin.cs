@@ -192,7 +192,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
 
             // Cas 2 : Leader est sur la même map et utilise une transition ou un portail
-            if (Leader != null && Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+            if (Leader != null && Leader.IsLeaderOnSameMap() && Leader.Entity != null && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
             {
                 var t = leaderActor.CurrentAction?.Target;
                 if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
@@ -202,7 +202,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
 
             // Cas 3 : Le leader vient de prendre un portail et on le suit
-            if (Leader != null && Leader.LastTargetedPortalOrTransition != null && Leader.LeaderCurrentArea == GameController.Area.CurrentArea.Name)
+            if (Leader != null && Leader.Entity != null && Leader.LastTargetedPortalOrTransition != null && Leader.LeaderCurrentArea == GameController.Area.CurrentArea.Name)
             {
                 Entity MyTarget = null;
                 int maxtattempts = 10;
