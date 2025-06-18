@@ -160,6 +160,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                 var firtstValidAndTargetableTP = townPortals.FirstOrDefault(tp => tp.IsValid && tp.IsTargetable);
                                 if (townPortals.Count > 0 && firtstValidAndTargetableTP != null && Leader.LeaderCurrentArea == firtstValidAndTargetableTP.RenderName)
                                 {
+                                    LogMessage($"Found a valid town portal: {firtstValidAndTargetableTP.RenderName}", 0.5f);
                                     var portalPosition = firtstValidAndTargetableTP.PosNum;
                                     var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
                                     if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
