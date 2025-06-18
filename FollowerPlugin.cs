@@ -190,7 +190,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
             }
         //cas 5 : Leader n'est pas du tout sur la même map
-        if (Leader != null && Leader.Entity != null && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name && GameController.Area.CurrentArea.IsHideout == false)
+        if (Leader != null && Leader.Entity == null && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name && GameController.Area.CurrentArea.IsHideout == false)
         {
 
 
