@@ -141,27 +141,18 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             LastTargetedPortalOrTransition = null,
                            
                         };
-
-                        if (Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+                                                
+                        if (!Leader.IsLeaderOnSameMap() && GameController.Area.CurrentArea.IsHideout)
                         {
-                            var t = leaderActor.CurrentAction?.Target;
-                            if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
-                            {
-                                Leader.LastTargetedPortalOrTransition = t;
-                            }
-                        }
 
-                        else if (!Leader.IsLeaderOnSameMap() && GameController.Area.CurrentArea.IsHideout)
-                        {
-                            
-                            
+
 
                             if (Settings.PartySubMenu.Follow)
                             {
 
                                 var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
                                 .Where(x => x.IsValid && x.IsTargetable).OrderBy(e => e.DistancePlayer).ToList();
-                                LogMessage($"Found {townPortals.Count} valid town portals.",0.5f);
+                                LogMessage($"Found {townPortals.Count} valid town portals.", 0.5f);
                                 var firtstValidAndTargetableTP = townPortals.FirstOrDefault(tp => tp.IsValid && tp.IsTargetable);
                                 if (townPortals.Count > 0 && firtstValidAndTargetableTP != null && Leader.LeaderCurrentArea == firtstValidAndTargetableTP.RenderName)
                                 {
@@ -198,6 +189,16 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                 }
                             }
                         }
+
+                        if (Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+                        {
+                            var t = leaderActor.CurrentAction?.Target;
+                            if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
+                            {
+                                Leader.LastTargetedPortalOrTransition = t;
+                            }
+                        }
+
                         else if (Leader.LastTargetedPortalOrTransition != null && Leader.IsLeaderOnSameMap())
                         {
                             Entity MyTarget = null;
