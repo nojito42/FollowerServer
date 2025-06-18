@@ -162,7 +162,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     if (firstTP != null)
                     {
                         LogMessage($"Found town portal to follow: {firstTP.RenderName}", 0.5f);
-                        var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(firstTP.PosNum);
+                        var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(firstTP.BoundsCenterPosNum);
                         if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
                         {
                             Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
@@ -207,7 +207,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 int maxtattempts = 10;
                 do
                 {
-                    var portalPosition = Leader.LastTargetedPortalOrTransition.PosNum;
+                    var portalPosition = Leader.LastTargetedPortalOrTransition.BoundsCenterPosNum;
                     var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
                     if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
                     {
@@ -222,8 +222,26 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 return;
             }
 
-            // Cas 4 : fallback si rien d’autre ne s’est passé, gérer comportement normal
-            ManageLeaderOnSameMap();
+        //cas 5 : Leader n'est pas du tout sur la même map
+        if (Leader != null && Leader.Entity != null && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
+        {
+
+
+            var leaderTpElement = Leader.Element.Children?[3];
+            if (leaderTpElement?.IsActive == true)
+            {
+                Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+                Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+                Input.Click(MouseButtons.Left);
+                Input.KeyDown(Keys.Enter);
+                Input.KeyUp(Keys.Enter);
+                Thread.Sleep(1000);
+                Leader.LastTargetedPortalOrTransition = null;
+                return;
+            }
+        }
+        // Cas 4 : fallback si rien d’autre ne s’est passé, gérer comportement normal
+        ManageLeaderOnSameMap();
         
        
     }
