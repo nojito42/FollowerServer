@@ -88,6 +88,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override Job Tick()
     {
+        LogMessage("FollowerPlugin Tick", 0.5f);
         var pt = GameController.Party();
 
         Settings.PartySubMenu.PartyMembers.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
