@@ -137,7 +137,9 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         {
                             LeaderName = leaderElement[0].Text,
                             Element = leaderElement,
-                            LastTargetedPortalOrTransition = null
+                            
+                            LastTargetedPortalOrTransition = null,
+                           
                         };
 
                         if (Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
@@ -151,17 +153,47 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                         if (!Leader.IsLeaderOnSameMap())
                         {
+                            
+                            
+
                             if (Settings.PartySubMenu.Follow)
                             {
-                                var leaderTpElement = Leader.Element.Children?[3];
-                                if (leaderTpElement != null && leaderTpElement.IsActive)
+
+                                var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
+                                .Where(x => x.IsValid && x.IsTargetable).OrderBy(e => e.DistancePlayer).ToList();
+                                var firtstValidAndTargetableTP = townPortals.FirstOrDefault(tp => tp.IsValid && tp.IsTargetable);
+                                if (townPortals.Count > 0 && firtstValidAndTargetableTP != null && Leader.LeaderCurrentArea == firtstValidAndTargetableTP.RenderName)
                                 {
-                                    Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
-                                    Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
-                                    Input.Click(MouseButtons.Left);
-                                    Input.KeyDown(Keys.Enter);
-                                    Input.KeyUp(Keys.Enter);
-                                    Thread.Sleep(1000);
+                                    var portalPosition = firtstValidAndTargetableTP.PosNum;
+                                    var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
+                                    if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
+                                    {
+                                        var rect = new SharpDX.RectangleF(
+                                            (int)(screenPos.X - 25),
+                                            (int)(screenPos.Y - 25),
+                                            50,
+                                            50
+                                        );
+                                        Graphics.DrawBox(rect, SharpDX.Color.Red);
+                                        Input.SetCursorPos(screenPos);
+                                        Input.Click(MouseButtons.Left);
+                                        Thread.Sleep(1000);
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    // Si pas de portail, on clique sur le leader
+                                    var leaderTpElement = Leader.Element.Children?[3];
+                                    if (leaderTpElement != null && leaderTpElement.IsActive)
+                                    {
+                                        Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+                                        Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+                                        Input.Click(MouseButtons.Left);
+                                        Input.KeyDown(Keys.Enter);
+                                        Input.KeyUp(Keys.Enter);
+                                        Thread.Sleep(1000);
+                                    }
                                 }
                             }
                         }

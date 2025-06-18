@@ -13,6 +13,7 @@ public class Leader
     public Element Element { get; set; }
 
     public Entity LastTargetedPortalOrTransition { get; set; }
+    public string LeaderCurrentArea => Element?.ChildCount > 1 ? Element.Children[1].Text : string.Empty;
 
     public Entity Entity => Core.Current.GameController.Entities
         .FirstOrDefault(entity => entity.IsValid && entity.Type == EntityType.Player && entity.GetComponent<Player>().PlayerName == Element[0].Text);
