@@ -125,10 +125,10 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         LogMessage("Checking for flagged panels...");
         if (!GameController.CloseWindowIfOpen())
         {
-            LogMessage("No flagged panels found, continuing...", 0.5f);
+            LogMessage("No flagged panels found, continuing...");
             if (pt != null)
             {
-                LogMessage($"Found {pt.ChildCount} party members.", 0.5f);
+                LogMessage($"Found {pt.ChildCount} party members.");
                 if (Settings.PartySubMenu.PartyMembers.Value != null)
                 {
                     pt ??= GameController.Party();
@@ -146,7 +146,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                            
                         };
                                                 
-                        if (!Leader.IsLeaderOnSameMap() && GameController.Area.CurrentArea.IsHideout)
+                        if (GameController.Area.CurrentArea.IsHideout && Leader.IsLeaderOnSameMap() == false)
                         {
 
                             LogMessage($"Leader {Leader.LeaderName} need reach it in map?.", 0.5f);
@@ -194,7 +194,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             }
                         }
 
-                        if (Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+                        else if (Leader.IsLeaderOnSameMap() && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
                         {
                             var t = leaderActor.CurrentAction?.Target;
                             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
