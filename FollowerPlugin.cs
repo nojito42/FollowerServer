@@ -13,6 +13,7 @@ using GameOffsets.Native;
 using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
+using ExileCore.Shared.Interfaces;
 namespace FollowerServer;
 
 public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -272,19 +273,39 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     if (pf.PathingNodes.Count > 0)
                     {
                         var lastNode = pf.PathingNodes.Last();
-                        Input.SetCursorPos(GameController.IngameState.Camera.WorldToScreen(GameController.IngameState.Data.ToWorldWithTerrainHeight(lastNode)));
-                        if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
+
+                        if (Settings.PartySubMenu.UseInputManager)
                         {
-                            Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
+                            var castWithPos = GameController.PluginBridge
+                            .GetMethod<Action<Vector2i, uint>>("MagicInput.CastSkillWithPosition");
+                            castWithPos(lastNode, 0x400);
+                        }
+                        else
+                        {
+                            Input.SetCursorPos(GameController.IngameState.Camera.WorldToScreen(GameController.IngameState.Data.ToWorldWithTerrainHeight(lastNode)));
+                            if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
+                            {
+                                Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
+                            }
                         }
                     }
                     else if (pf.PathingNodes.Count <= 0 && (!playerisattacking && playerEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value))
                     {
-                        var playerscreenpos = GameController.IngameState.Camera.WorldToScreen(leaderEntity.PosNum);
-                        Input.SetCursorPos(playerscreenpos);
-                        if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
+
+                        if (Settings.PartySubMenu.UseInputManager)
                         {
-                            Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
+                            var castWithPos = GameController.PluginBridge
+                            .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
+                            castWithPos(leaderEntity, 0x400);
+                        }
+                        else
+                        {
+                            var playerscreenpos = GameController.IngameState.Camera.WorldToScreen(leaderEntity.PosNum);
+                            Input.SetCursorPos(playerscreenpos);
+                            if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
+                            {
+                                Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
+                            }
                         }
                     }
                 }
