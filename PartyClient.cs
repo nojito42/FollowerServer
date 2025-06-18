@@ -172,15 +172,16 @@ public class PartyClient(FollowerPlugin plugin)
                 var screenDistance = followerScreenPos.Distance(leaderScreenPos);
                 if (screenDistance < 1000) // éviter les positions trop éloignées ou invalides
                 {
+
                     input.MouseCoords = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
                 }
             }
 
-            if (input.MouseCoords == Vector2.Zero)
-            {
-                _plugin.LogError("MouseCoords vide, annulation du clic");
-                return;
-            }
+            //if (input.MouseCoords == Vector2.Zero)
+            //{
+            //    _plugin.LogError("MouseCoords vide, annulation du clic");
+            //    return;
+            //}
 
             Vector2 clickPos;
             var clientWindow = _plugin.GameController.Window.GetWindowRectangleTimeCache;
@@ -199,11 +200,18 @@ public class PartyClient(FollowerPlugin plugin)
             {
                 clickPos = input.MouseCoords;
             }
-
-            if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos.ToSharpDx()))
+            _plugin.LogMessage($"Clic position: {clickPos}, Leader Position: {leaderEntity.GridPosNum}, Distance: {clickPos.Distance(leaderEntity.GridPosNum)}");
+            if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos) || clickPos.Distance(leaderEntity.GridPosNum) > 100)
             {
                 Input.SetCursorPos(clickPos);
                 Thread.Sleep(10);
+            }
+            else
+            {
+               clickPos =_plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum);
+                Input.SetCursorPos(clickPos);
+                Thread.Sleep(10);
+
             }
 
             if (int.TryParse(input.RawInput, out var i2))
