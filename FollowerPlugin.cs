@@ -349,6 +349,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount ==3 && c.ToString().Contains("Element")).FirstOrDefault();
                 if (opt != null)
                 {
+                    LogError($"Found item on ground: {opt}", 100);
                     var screenPos = opt.GetClientRect().Center.ToVector2Num();
                     if (GameController.Window.GetWindowRectangle().Contains(screenPos))
                     {
