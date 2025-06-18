@@ -158,6 +158,9 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                 .Where(x => x.IsValid && x.IsTargetable).OrderBy(e => e.DistancePlayer).ToList();
                                 LogMessage($"Found {townPortals.Count} valid town portals.");
                                 var firtstValidAndTargetableTP = townPortals.FirstOrDefault(tp => tp.IsValid && tp.IsTargetable);
+
+                                if(firtstValidAndTargetableTP != null)
+                                    LogMessage($"First valid and targetable town portal: {firtstValidAndTargetableTP.RenderName}-{Leader.LeaderCurrentArea}",1,SharpDX.Color.Red);
                                 if (townPortals.Count > 0 && firtstValidAndTargetableTP != null && Leader.LeaderCurrentArea == firtstValidAndTargetableTP.RenderName)
                                 {
                                     LogMessage($"Found a valid town portal: {firtstValidAndTargetableTP.RenderName}", 0.5f);
