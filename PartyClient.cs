@@ -163,18 +163,22 @@ public class PartyClient(FollowerPlugin plugin)
                 return;
 
             var actionDestination = leaderEntity.GetComponent<Actor>()?.CurrentAction?.Destination;
+
+
             Vector2 leaderScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(leaderEntity.PosNum);
             Vector2 followerScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(_plugin.GameController.Player.PosNum);
 
             if (actionDestination != null && actionDestination.HasValue)
             {
                 var worldTarget = actionDestination.Value.ToVector2Num();
-                var screenDistance = followerScreenPos.Distance(leaderScreenPos);
-                if (screenDistance < 1000) // éviter les positions trop éloignées ou invalides
-                {
+                var screenWorldTarget = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
+                //var screenDistance = followerScreenPos.Distance(leaderScreenPos);
 
-                    input.MouseCoords = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
-                }
+                //if (screenDistance < 1000) // éviter les positions trop éloignées ou invalides
+                //{
+                if (_plugin.GameController.Window.GetWindowRectangle().Contains(screenWorldTarget))
+                    input.MouseCoords = screenWorldTarget;
+                //}
             }
 
             //if (input.MouseCoords == Vector2.Zero)
