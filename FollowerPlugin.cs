@@ -161,6 +161,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                                 var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
                                 .Where(x => x.IsValid && x.IsTargetable).OrderBy(e => e.DistancePlayer).ToList();
+                                LogMessage($"Found {townPortals.Count} valid town portals.",0.5f);
                                 var firtstValidAndTargetableTP = townPortals.FirstOrDefault(tp => tp.IsValid && tp.IsTargetable);
                                 if (townPortals.Count > 0 && firtstValidAndTargetableTP != null && Leader.LeaderCurrentArea == firtstValidAndTargetableTP.RenderName)
                                 {
