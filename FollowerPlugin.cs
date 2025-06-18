@@ -185,39 +185,48 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             }
                         }
                         // Si on a un portail ou transition ciblé
-                        else if (Leader.LastTargetedPortalOrTransition != null)
+                        else if (Leader.LastTargetedPortalOrTransition != null && Leader.IsLeaderOnSameMap())
                         {
-                            // On récupère la position monde du portail/transition ciblé
-                            var portalPosition = Leader.LastTargetedPortalOrTransition.PosNum; // supposition que Position est un Vector3 ou similaire
+                            Entity MyTarget = null;
 
-                            // On convertit en coordonnées écran avec Camera.WorldToScreen
-                            var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
-
-                            if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos)) // vérifier que la conversion est valide
+                            int maxtattempts = 10; // Nombre maximum de tentatives pour cliquer sur le portail/transition
+                            do
                             {
-                                // Dessine un cadre rouge autour de la position écran
-                                // On doit définir un rectangle centré sur screenPos (exemple 50x50 px)
-                                var rect = new SharpDX.RectangleF(
-                                    (int)(screenPos.X - 25),
-                                    (int)(screenPos.Y - 25),
-                                    50,
-                                    50
-                                );
-                                Graphics.DrawBox(rect,SharpDX.Color.Red);
 
-                                // Déplace la souris au centre du rectangle
-                                Input.SetCursorPos(screenPos);
 
-                                // Clique gauche + Enter (comme dans ton code)
-                                Input.Click(MouseButtons.Left);
-                              
+                                // On récupère la position monde du portail/transition ciblé
+                                var portalPosition = Leader.LastTargetedPortalOrTransition.PosNum; // supposition que Position est un Vector3 ou similaire
 
-                                Thread.Sleep(100);
-                                return;
-                            }
+                                // On convertit en coordonnées écran avec Camera.WorldToScreen
+                                var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
+
+                                if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos)) // vérifier que la conversion est valide
+                                {
+                                    // Dessine un cadre rouge autour de la position écran
+                                    // On doit définir un rectangle centré sur screenPos (exemple 50x50 px)
+                                    var rect = new SharpDX.RectangleF(
+                                        (int)(screenPos.X - 25),
+                                        (int)(screenPos.Y - 25),
+                                        50,
+                                        50
+                                    );
+                                    Graphics.DrawBox(rect, SharpDX.Color.Red);
+
+                                    // Déplace la souris au centre du rectangle
+                                    Input.SetCursorPos(screenPos);
+
+                                    // Clique gauche + Enter (comme dans ton code)
+                                    Input.Click(MouseButtons.Left);
+                                    MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
+                                    maxtattempts--;
+                                    Thread.Sleep(100);
+
+                                }
+                            } while (MyTarget == null || (MyTarget != null && MyTarget != Leader.LastTargetedPortalOrTransition) || maxtattempts > 0);
+                            return; // Sort de la méthode après avoir cliqué sur le portail/transition
                         }
                         // Sinon si le leader n'est pas sur la même map
-                        
+
                         else
                         {
                             ManageLeaderOnSameMap();
