@@ -346,20 +346,19 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
             else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
             {
-                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.Children.Where(c => c.ChildCount ==3).FirstOrDefault();
+                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount ==3).FirstOrDefault();
                 if (opt != null)
                 {
                     LogError($"Found item on ground: {opt}", 100);
-                    var screenPos = opt.GetClientRect().Center.ToVector2Num();
-                    if (GameController.Window.GetWindowRectangle().Contains(screenPos))
-                    {
+                    var screenPos = opt.FindChildRecursive(e=> e.Text.ToLower().Contains("opt")).GetClientRect().Center.ToVector2Num();
+                    
 
                         Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                         Input.SetCursorPos(screenPos);
                         Thread.Sleep(20);
                         Input.Click(MouseButtons.Left);
                         Thread.Sleep(100);
-                    }
+                    
                 }
                 else
                  LogError("No items on ground found.", 100);
