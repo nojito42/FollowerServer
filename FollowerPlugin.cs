@@ -515,6 +515,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             var currentSkill = GameController.Player.GetComponent<Actor>().CurrentAction?.Skill;
             var window = GameController.Window.GetWindowRectangleTimeCache;
 
+           
             //if (GameController.Player.GetComponent<Actor>().Action == (ActionFlags)16386 ||
             //    (currentSkill != null && currentSkill.Name.Contains("BlinkPlayer")))
             //{
