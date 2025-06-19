@@ -377,9 +377,15 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 if (myTravelSkill != null && myTravelSkill.Skill != null && myTravelSkill.Skill.IsValid && myTravelSkill.Skill.Skill.CanBeUsed)
                 {
-                   var sc = myTravelSkill.Shortcut;
-                    sc.PressShortCut(10);
-                    LogMessage($"Using travel skill: {myTravelSkill.Skill.TextureName} with shortcut {sc.MainKey}");
+                    TryDoAction(() =>
+                    {
+                        var sc = myTravelSkill.Shortcut;
+                        Input.KeyDown((Keys)sc.MainKey);
+                        Thread.Sleep(10);
+                        Input.KeyUp((Keys)sc.MainKey);
+                        Thread.Sleep(20);
+                    });
+                  
 
                 }
                
