@@ -373,13 +373,13 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             bool isTravelSkill = leaderaction != null && leaderaction.Skill != null && leaderaction.Skill.GetStat(GameStat.SkillIsTravelSkill) > 0;
             if (Settings.PartySubMenu.UseSmartTPSkill && isTravelSkill)
             {
-                var myTravelSkill = FollowerSkills.FirstOrDefault(x => x.Skill.Skill.GetStat(GameStat.SkillIsTravelSkill) > 0);
+                var myTravelSkill = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.GetStat(GameStat.SkillIsTravelSkill) > 0 && x.IsOnSkillBar);
 
-                if (myTravelSkill != null && myTravelSkill.Skill != null && myTravelSkill.Skill.IsValid && myTravelSkill.Skill.Skill.CanBeUsed)
+                if (myTravelSkill != null)
                 {
                     TryDoAction(() =>
                     {
-                        var sc = myTravelSkill.Shortcut;
+                        var sc = shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
                         Input.KeyDown((Keys)sc.MainKey);
                         Thread.Sleep(10);
                         Input.KeyUp((Keys)sc.MainKey);
