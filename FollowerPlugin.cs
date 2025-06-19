@@ -324,7 +324,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             TryDoAction(() =>
                             {
                                 var castWithTarget = GameController.PluginBridge
-                                    .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
+                                    .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
                                 castWithTarget(leaderEntity, 0x400);
                             });
                         }
