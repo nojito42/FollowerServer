@@ -369,6 +369,22 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
                 ReleaseKeys();
             }
+
+            var leaderaction = leaderEntity.GetComponent<Actor>().CurrentAction;
+            bool isTravelSkill = leaderaction != null && leaderaction.Skill != null && leaderaction.Skill.GetStat(GameStat.SkillIsTravelSkill) > 0;
+            if (Settings.PartySubMenu.UseSmartTPSkill && isTravelSkill)
+            {
+                var myTravelSkill = FollowerSkills.FirstOrDefault(x => x.Skill.Skill.GetStat(GameStat.SkillIsTravelSkill) > 0);
+
+                if (myTravelSkill != null && myTravelSkill.Skill != null && myTravelSkill.Skill.IsValid && myTravelSkill.Skill.Skill.CanBeUsed)
+                {
+                   var sc = myTravelSkill.Shortcut;
+                    sc.PressShortCut(10);
+                    LogMessage($"Using travel skill: {myTravelSkill.Skill.TextureName} with shortcut {sc.MainKey}");
+
+                }
+               
+            }
         }
     }
 
