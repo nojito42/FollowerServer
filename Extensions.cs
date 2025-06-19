@@ -21,7 +21,7 @@ public static class Extensions
             Input.KeyDown(Keys.Escape);
             Thread.Sleep(10);
             Input.KeyUp(Keys.Escape);
-            Thread.Sleep(10);
+            Thread.Sleep(300);
             return true;
         }
         return false;
