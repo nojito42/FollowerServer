@@ -284,7 +284,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     Input.SetCursorPos(screenPos);
                     Thread.Sleep(10);
-                    var skillOnBar = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.IsOnSkillBar && x.GetStat(GameStat.SkillIsTravelSkill) > 0);
+                    var skillOnBar = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.IsOnSkillBar && x.GetStat(GameStat.SkillIsTravelSkill) > 0 && x.Id != 10505);
 
                     if(skillOnBar != null)
                     {

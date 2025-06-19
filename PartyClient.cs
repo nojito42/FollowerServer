@@ -190,7 +190,7 @@ public class PartyClient(FollowerPlugin plugin)
                 Input.SetCursorPos(clickPos);
                 Thread.Sleep(10);
             }
-            var actorskill = _plugin.GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.SkillSlotIndex == inputIndex);
+            var actorskill = _plugin.GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.SkillSlotIndex == inputIndex && x.Id != 10505);
 
             if(actorskill != null && _plugin.Settings.PartySubMenu.UseSmartTPSkill && actorskill.GetStat(ExileCore.Shared.Enums.GameStat.SkillIsTravelSkill) > 0)
             {
