@@ -291,7 +291,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         var sc = this.shortcuts.Skip(7).Take(13).ToList()[skillOnBar.SkillSlotIndex];
 
                         sc.PressShortCut(10);
-                        LogMessage($"Pressed skill {skillOnBar.Name} with shortcut {sc.MainKey} at position {screenPos}", 100);
+                        LogMessage($"Pressed skill {skillOnBar.Name} with shortcut {sc.MainKey} at position {screenPos}");
                         return;
                     }
                 
