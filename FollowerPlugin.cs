@@ -350,7 +350,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 if (opt != null)
                 {
                     LogError($"Found item on ground: {opt}", 100);
-                    var screenPos = opt.FindChildRecursive(e=> e.Text.ToLower().Contains("opt")).GetClientRect().Center.ToVector2Num();
+                    var screenPos = opt[2].GetClientRect().Center.ToVector2Num();
                     
 
                         Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
