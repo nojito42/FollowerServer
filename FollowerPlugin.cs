@@ -287,7 +287,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     lastMoveCheck = DateTime.Now;
 
                     var pf = leaderEntity.GetComponent<Pathfinding>();
-                    var leaderaction = leaderEntity.GetComponent<Actor>().Action;
 
                     if (pf.PathingNodes.Count > 0)
                     {
