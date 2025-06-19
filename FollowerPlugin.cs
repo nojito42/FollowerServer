@@ -276,32 +276,28 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 var destination = leaderActor.CurrentAction.Destination;
                 var screenPos = GameController.IngameState.Camera.WorldToScreen(
-                       GameController.IngameState.Data.ToWorldWithTerrainHeight(destination));
-                if (Settings.PartySubMenu.UseInputManager && GameController.Window.GetWindowRectangle().Contains(screenPos))
+                    GameController.IngameState.Data.ToWorldWithTerrainHeight(destination));
+
+              
+
+                TryDoAction(() =>
                 {
-                    TryDoAction(() =>
+                    Input.SetCursorPos(screenPos);
+                    Thread.Sleep(10);
+                    var skillOnBar = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.IsOnSkillBar && x.GetStat(GameStat.SkillIsTravelSkill) > 0);
+
+                    if(skillOnBar != null)
                     {
-                        var castWithPos = GameController.PluginBridge
-                            .GetMethod<Action<Vector2i, uint>>("MagicInput2.CastSkillWithPosition");
-                        castWithPos(destination, 0x400);
-                    });
-                    LogError($"Using Smart TP Skill to {destination}", 100);
-                }
-                else
-                {
+                        var sc = this.shortcuts.Skip(7).Take(13).ToList()[skillOnBar.SkillSlotIndex];
+
+                        sc.PressShortCut(10);
+                        LogMessage($"Pressed skill {skillOnBar.Name} with shortcut {sc.MainKey} at position {screenPos}", 100);
+                        return;
+                    }
+                
+                });
 
 
-                    TryDoAction(() =>
-                    {
-                        Input.SetCursorPos(screenPos);
-                        Thread.Sleep(10);
-                        if (!Input.IsKeyDown((Keys)MoveSkill.Shortcut.MainKey))
-                        {
-                            Input.KeyDown((Keys)MoveSkill.Shortcut.MainKey);
-                        }
-                    });
-
-                }
             }
             if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
             {
