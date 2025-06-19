@@ -298,7 +298,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             TryDoAction(() =>
                             {
                                 var castWithPos = GameController.PluginBridge
-                                    .GetMethod<Action<Vector2i, uint>>("MagicInput.CastSkillWithPosition");
+                                    .GetMethod<Action<Vector2i, uint>>("MagicInput2.CastSkillWithPosition");
                                 castWithPos(lastNode, 0x400);
                             });
                         }
