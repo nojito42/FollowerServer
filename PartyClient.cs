@@ -153,6 +153,12 @@ public class PartyClient(FollowerPlugin plugin)
                 .FirstOrDefault(x => x.Type == ExileCore.Shared.Enums.EntityType.Player &&
                                      x.GetComponent<Player>()?.PlayerName == input.LeaderName);
             if (leaderEntity == null) return;
+            var actorskill = _plugin.GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.SkillSlotIndex == inputIndex && x.Id != 10505);
+
+            if (actorskill != null && _plugin.Settings.PartySubMenu.UseSmartTPSkill && actorskill.GetStat(ExileCore.Shared.Enums.GameStat.SkillIsTravelSkill) > 0)
+            {
+                return;
+            }
 
             var clientWindow = _plugin.GameController.Window.GetWindowRectangleTimeCache;
             var mouse = input.MouseCoords;
@@ -190,13 +196,7 @@ public class PartyClient(FollowerPlugin plugin)
                 Input.SetCursorPos(clickPos);
                 Thread.Sleep(10);
             }
-            var actorskill = _plugin.GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.SkillSlotIndex == inputIndex && x.Id != 10505);
-
-            if(actorskill != null && _plugin.Settings.PartySubMenu.UseSmartTPSkill && actorskill.GetStat(ExileCore.Shared.Enums.GameStat.SkillIsTravelSkill) > 0)
-            {
-                return;
-            }
-            
+           
             var scs = _plugin.shortcuts.Skip(7).Take(13).ToList();
             if (inputIndex < scs.Count)
             {
