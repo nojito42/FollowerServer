@@ -281,7 +281,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     {
                         var wts = GameController.IngameState.Data.GetGridScreenPosition(leaderaction.Destination);
                         Input.SetCursorPos(wts);
-
+                        Thread.Sleep(50);
 
                         var scs = shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
                         scs.PressShortCut(10);
