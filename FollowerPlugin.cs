@@ -301,7 +301,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
-                    if(GameController.Player.Buffs.Any(b=> b.SourceSkill == crySkill))
+                    if(GameController.Player.Buffs.Any(b=> b.DisplayName == crySkill.Name))
                     {
                         LogError($"Cry Skill {crySkill.Name} is already active, skipping.");
                         continue;
