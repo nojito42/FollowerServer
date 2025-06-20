@@ -379,13 +379,12 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     if(Settings.PartySubMenu.UseInputManager)
                     {
-                        TryDoAction(() =>
-                        {
+                     
                             var castWithTarget = GameController.PluginBridge
                                 .GetMethod<Action<Vector2i, uint>>("MagicInput2.CastSkillWithPosition");
                             castWithTarget(leaderaction.Destination, 0x400);
                             LogError($"Pressed Travel Skill: {myTravelSkill.Name} {myTravelSkill.SkillSlotIndex} with position {leaderaction.Destination} using InputManager");
-                        });
+                        
                       
                     }
                     else
