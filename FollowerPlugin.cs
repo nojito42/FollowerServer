@@ -294,17 +294,21 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
 
             }
-            if (Settings.PartySubMenu.UseCriesAuto)
+            if (Settings.PartySubMenu.UseCriesAuto && GameController.Area.CurrentArea.IsHideout == false)
             {
                 var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
                     .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false)
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
-                    LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
-                    var scs = shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
+                    TryDoAction(() =>
+                    {
+                        LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
+                        var scs = shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
 
-                    scs.PressShortCut(10);
+                        scs.PressShortCut(1);
+                    });
+                 
                 }
             }
             if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
