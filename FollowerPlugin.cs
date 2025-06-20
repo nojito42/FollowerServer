@@ -267,10 +267,38 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         if (leaderEntity != null)
         {
+
+            var leaderaction = leaderEntity.GetComponent<Actor>().CurrentAction;
+            bool isTravelSkill = leaderaction != null && leaderaction.Skill != null && leaderaction.Skill.GetStat(GameStat.SkillIsTravelSkill) > 0;
+            if (Settings.PartySubMenu.UseSmartTPSkill && isTravelSkill)
+            {
+                var myTravelSkill = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.GetStat(GameStat.SkillIsTravelSkill) > 0 && x.IsOnSkillBar);
+                LogError($"My Travel Skill: {myTravelSkill?.Name} {myTravelSkill?.SkillSlotIndex}");
+                if (myTravelSkill != null)
+                {
+
+                    TryDoAction(() =>
+                    {
+                        var wts = GameController.IngameState.Data.GetGridScreenPosition(leaderaction.Destination);
+                        Input.SetCursorPos(wts);
+
+
+                        var scs = shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
+                        scs.PressShortCut(10);
+
+                        LogError($"Pressed Travel Skill: {myTravelSkill.Name} {myTravelSkill.SkillSlotIndex} with shortcut {scs.MainKey} {scs.Modifier}");
+                        return;
+                    });
+
+
+                }
+
+            }
             if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
             {
                 ReleaseKeys();
             }
+           
             else if (leaderEntity.DistancePlayer > Settings.PartySubMenu.KeepLeaderInRange.Value && Settings.PartySubMenu.Follow)
             {
                 var moveSkill = MoveSkill;
@@ -369,31 +397,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 ReleaseKeys();
             }
 
-            var leaderaction = leaderEntity.GetComponent<Actor>().CurrentAction;
-            bool isTravelSkill = leaderaction != null && leaderaction.Skill != null && leaderaction.Skill.GetStat(GameStat.SkillIsTravelSkill) > 0;
-            if (Settings.PartySubMenu.UseSmartTPSkill && isTravelSkill)
-            {
-                var myTravelSkill = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.GetStat(GameStat.SkillIsTravelSkill) > 0 && x.IsOnSkillBar);
-                LogError($"My Travel Skill: {myTravelSkill?.Name} {myTravelSkill?.SkillSlotIndex}");
-                if (myTravelSkill != null)
-                {
-                    TryDoAction(() =>
-                    {
-                        var wts = GameController.IngameState.Data.GetGridScreenPosition(leaderaction.Destination);
-                        Input.SetCursorPos(wts);
-                        Thread.Sleep(20);
-
-
-                        var scs = shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
-                        scs.PressShortCut(10);
-
-                        LogError($"Pressed Travel Skill: {myTravelSkill.Name} {myTravelSkill.SkillSlotIndex} with shortcut {scs.MainKey} {scs.Modifier}");
-
-                    });
-                   
-                }
-               
-            }
+           
         }
     }
 
