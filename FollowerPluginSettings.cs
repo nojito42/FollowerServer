@@ -17,6 +17,9 @@ public class ServerSubMenu
 {
     public ToggleNode ToggleLeaderServer { get; set; } = new ToggleNode(false);
     public ToggleNode DrawFollowersCircle { get; set; } = new ToggleNode(true);
+    public RangeNode<int> CircleRadius { get; set; } = new RangeNode<int>(50, 10, 200);
+    public RangeNode<int> CircleThickness { get; set; } = new RangeNode<int>(3, 2, 10);
+    public RangeNode<int> CircleAlpha { get; set; } = new RangeNode<int>(150, 10, 255);
     public TextNode ServerIP { get; set; } = new TextNode("192.168.1.120");
     public ButtonNode ConnectClient { get; set; } = new ButtonNode();
 

@@ -585,6 +585,11 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (Settings.ServerSubMenu.DrawFollowersCircle)
             {
                 var pt = GameController.IngameState.IngameUi.PartyElement.PlayerElements.ToList();
+                if(pt == null || pt.Count == 0)
+                {
+                    LogMessage("No party members found to draw circles.", 100);
+                    return;
+                }
                 int i = 0;
                 pt.ForEach(pm =>
 
@@ -592,10 +597,15 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     SharpDX.Color[] colors = { SharpDX.Color.Red, SharpDX.Color.Green, SharpDX.Color.Blue, SharpDX.Color.Yellow, SharpDX.Color.Purple };
                     var e = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.Player]
                         .FirstOrDefault(x => x.GetComponent<Player>()?.PlayerName == pm.PlayerName);
+                    if(e == null)
+                    {
+                        LogMessage($"Entity for player {pm.PlayerName} not found.", 100);
+                        return;
+                    }
                     var gp = GameController.IngameState.Data.GetWorldScreenPosition(e.PosNum);
                     if (GameController.Window.GetWindowRectangleTimeCache.Contains(gp))
                     {
-                        Graphics.DrawCircleInWorld(e.PosNum, 50, colors[i], 2);
+                        Graphics.DrawCircleInWorld(e.PosNum, Settings.ServerSubMenu.CircleRadius, colors[i] with { A = (byte)Settings.ServerSubMenu.CircleAlpha}, Settings.ServerSubMenu.CircleThickness);
                         i++;
                     }
                 });
