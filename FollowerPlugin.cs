@@ -297,7 +297,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (Settings.PartySubMenu.UseCriesAuto)
             {
                 var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
-                    .Where(x => x.IsCry && x.IsOnSkillBar && x.CanBeUsed && !GameController.Player.Buffs.Any(b => b.SourceSkillId == x.Id))
+                    .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false)
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
