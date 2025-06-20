@@ -374,7 +374,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (Settings.PartySubMenu.UseSmartTPSkill && isTravelSkill)
             {
                 var myTravelSkill = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.GetStat(GameStat.SkillIsTravelSkill) > 0 && x.IsOnSkillBar);
-
+                LogError($"My Travel Skill: {myTravelSkill?.Name}");
                 if (myTravelSkill != null)
                 {
                     TryDoAction(() =>
