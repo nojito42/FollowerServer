@@ -379,10 +379,10 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                    
                         var sc = shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
-                        LogError($"Casting Travel Skill: {sc.MainKey} {sc.Modifier}");
-                        Input.KeyDown((Keys)sc.MainKey);
+                        LogError($"Casting Travel Skill: {sc.MainKey}---- {sc.Modifier}");
+                        Input.KeyDown((Keys)sc.Modifier);
                         Thread.Sleep(10);
-                        Input.KeyUp((Keys)sc.MainKey);
+                        Input.KeyUp((Keys)sc.Modifier);
                         Thread.Sleep(20);
                    
                   
