@@ -294,6 +294,19 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
 
             }
+            if (Settings.PartySubMenu.UseCriesAuto)
+            {
+                var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
+                    .Where(x => x.IsCry && x.IsOnSkillBar && x.CanBeUsed && !GameController.Player.Buffs.Any(b => b.SourceSkillId == x.Id))
+                    .ToList();
+                foreach (var crySkill in crySkills)
+                {
+                    LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
+                    var scs = shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
+
+                    scs.PressShortCut(10);
+                }
+            }
             if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
             {
                 ReleaseKeys();
@@ -371,7 +384,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     }
                 }
             }
-            else if (leaderEntity.DistancePlayer <= 20)
+            else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
             {
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount == 3).FirstOrDefault();
                 if (opt != null && opt[2] != null && opt[2].IsVisible)
@@ -394,19 +407,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     Input.KeyUp((Keys)MoveSkill.Shortcut.MainKey);
                 }
-                if(Settings.PartySubMenu.UseCriesAuto)
-                {
-                    var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
-                        .Where(x => x.IsCry && x.IsOnSkillBar && x.CanBeUsed && !GameController.Player.Buffs.Any(b=>b.SourceSkillId ==x.Id))
-                        .ToList();
-                    foreach (var crySkill in crySkills)
-                    {
-                        LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
-                        var scs = shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
-                        
-                        scs.PressShortCut(10);
-                    }
-                }
+                
                 ReleaseKeys();
             }
 
