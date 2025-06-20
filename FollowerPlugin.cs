@@ -371,7 +371,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     }
                 }
             }
-            else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
+            else if (leaderEntity.DistancePlayer <= 20)
             {
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount == 3).FirstOrDefault();
                 if (opt != null && opt[2] != null && opt[2].IsVisible)
