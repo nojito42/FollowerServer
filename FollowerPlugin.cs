@@ -401,11 +401,9 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         .ToList();
                     foreach (var crySkill in crySkills)
                     {
+                        LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
                         var scs = shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
-                        if (scs.IsShortCutPressed())
-                        {
-                            continue;
-                        }
+                        
                         scs.PressShortCut(10);
                     }
                 }
