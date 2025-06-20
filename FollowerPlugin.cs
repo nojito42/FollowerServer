@@ -377,15 +377,14 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 LogError($"My Travel Skill: {myTravelSkill?.Name} {myTravelSkill?.SkillSlotIndex}");
                 if (myTravelSkill != null)
                 {
-                    TryDoAction(() =>
-                    {
+                   
                         var sc = shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
                         LogError($"Casting Travel Skill: {sc.MainKey} {sc.Modifier}");
                         Input.KeyDown((Keys)sc.MainKey);
                         Thread.Sleep(10);
                         Input.KeyUp((Keys)sc.MainKey);
                         Thread.Sleep(20);
-                    });
+                   
                   
 
                 }
