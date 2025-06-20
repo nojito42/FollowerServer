@@ -297,10 +297,15 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (Settings.PartySubMenu.UseCriesAuto && leaderEntity.DistancePlayer < 20 && (GameController.Area.CurrentArea.IsHideout == false && GameController.Area.CurrentArea.IsTown == false))
             {
                 var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
-                    .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false && !GameController.Player.Buffs.Any(b=>b.SourceSkill == x))
+                    .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false)
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
+                    if(GameController.Player.Buffs.Any(b=> b.SourceSkill == crySkill))
+                    {
+                        LogError($"Cry Skill {crySkill.Name} is already active, skipping.");
+                        continue;
+                    }
                     TryDoAction(() =>
                     {
                         LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
