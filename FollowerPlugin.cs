@@ -294,7 +294,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
 
             }
-            if (Settings.PartySubMenu.UseCriesAuto && GameController.Area.CurrentArea.IsHideout == false)
+            if (Settings.PartySubMenu.UseCriesAuto && (GameController.Area.CurrentArea.IsHideout == false && GameController.Area.CurrentArea.IsTown == false))
             {
                 var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
                     .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false)
