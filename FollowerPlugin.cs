@@ -377,7 +377,9 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 LogError($"My Travel Skill: {myTravelSkill?.Name} {myTravelSkill?.SkillSlotIndex}");
                 if (myTravelSkill != null)
                 {
-
+                    var wts = GameController.IngameState.Data.GetGridScreenPosition(leaderaction.Destination);
+                    Input.SetCursorPos(wts);
+                    Thread.Sleep(20);
                     var scs = shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
                     scs.PressShortCut(10);
 
