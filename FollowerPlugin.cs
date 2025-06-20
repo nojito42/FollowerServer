@@ -37,7 +37,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         var mem = GameController.Memory;
         var sc = GameController.IngameState.ShortcutSettings.Shortcuts;
 
-        if (sc == null || sc.Count <= 5)
+        if (sc == null || sc.Count <= 5 )
         {
             var address = GameController.IngameState.ShortcutSettings.Address;
             //int maxTries = 10000;
@@ -301,7 +301,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
-                    if(GameController.Player.Buffs.Any(b=> b.DisplayName.Contains(crySkill.Name)))
+                    if(GameController.Player.Buffs.Any(b=> b.DisplayName.Contains(crySkill.Name)) || GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost)
                     {
                         LogError($"Cry Skill {crySkill.Name} is already active, skipping.");
                         continue;
