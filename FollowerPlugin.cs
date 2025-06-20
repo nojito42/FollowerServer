@@ -297,7 +297,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (Settings.PartySubMenu.UseCriesAuto && leaderEntity.DistancePlayer < 20 && (GameController.Area.CurrentArea.IsHideout == false && GameController.Area.CurrentArea.IsTown == false))
             {
                 var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
-                    .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false)
+                    .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false && !GameController.Player.Buffs.Any(b=>b.SourceSkill == x))
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
