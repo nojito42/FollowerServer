@@ -394,6 +394,21 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     Input.KeyUp((Keys)MoveSkill.Shortcut.MainKey);
                 }
+                if(Settings.PartySubMenu.UseCriesAuto)
+                {
+                    var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
+                        .Where(x => x.IsCry && x.IsOnSkillBar && x.Cooldown == 0)
+                        .ToList();
+                    foreach (var crySkill in crySkills)
+                    {
+                        var scs = shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
+                        if (scs.IsShortCutPressed())
+                        {
+                            continue;
+                        }
+                        scs.PressShortCut(10);
+                    }
+                }
                 ReleaseKeys();
             }
 
