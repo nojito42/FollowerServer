@@ -37,7 +37,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         var mem = GameController.Memory;
         var sc = GameController.IngameState.ShortcutSettings.Shortcuts;
 
-        if (sc == null || sc.Count <= 5 )
+        if (sc == null || sc.Count <= 5)
         {
             var address = GameController.IngameState.ShortcutSettings.Address;
             //int maxTries = 10000;
@@ -301,7 +301,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
-                    if(GameController.Player.Buffs.Any(b=> b.DisplayName.Contains(crySkill.Name)) || GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost)
+                    if (GameController.Player.Buffs.Any(b => b.DisplayName.Contains(crySkill.Name)) || GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost)
                     {
                         LogError($"Cry Skill {crySkill.Name} is already active, skipping.");
                         continue;
@@ -313,14 +313,14 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                         scs.PressShortCut(1);
                     });
-                 
+
                 }
             }
             if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
             {
                 ReleaseKeys();
             }
-           
+
             else if (leaderEntity.DistancePlayer > Settings.PartySubMenu.KeepLeaderInRange.Value && Settings.PartySubMenu.Follow)
             {
                 var moveSkill = MoveSkill;
@@ -416,11 +416,11 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     Input.KeyUp((Keys)MoveSkill.Shortcut.MainKey);
                 }
-                
+
                 ReleaseKeys();
             }
 
-           
+
         }
     }
 
@@ -582,6 +582,24 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
             Graphics.DrawText($"Using Ability {curString}", new Vector2(100, 120));
 
+            if (Settings.ServerSubMenu.DrawFollowersCircle)
+            {
+                var pt = GameController.IngameState.IngameUi.PartyElement.PlayerElements.ToList();
+                int i = 0;
+                pt.ForEach(pm =>
+
+                {
+                    SharpDX.Color[] colors = { SharpDX.Color.Red, SharpDX.Color.Green, SharpDX.Color.Blue, SharpDX.Color.Yellow, SharpDX.Color.Purple };
+                    var e = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.Player]
+                        .FirstOrDefault(x => x.GetComponent<Player>()?.PlayerName == pm.PlayerName);
+                    var gp = GameController.IngameState.Data.GetWorldScreenPosition(e.PosNum);
+                    if (GameController.Window.GetWindowRectangleTimeCache.Contains(gp))
+                    {
+                        Graphics.DrawCircleInWorld(e.PosNum, 50, colors[i], 2);
+                        i++;
+                    }
+                });
+            }
         }
     }
     public override void Dispose()
@@ -854,7 +872,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 //                var screenPos = GameController.IngameState.Camera.WorldToScreen(
 //                    GameController.IngameState.Data.ToWorldWithTerrainHeight(destination));
 
-              
+
 
 //                TryDoAction(() =>
 //                {
@@ -870,7 +888,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 //                        LogMessage($"Pressed skill {skillOnBar.Name} with shortcut {sc.MainKey} at position {screenPos}");
 //                        return;
 //                    }
-                
+
 //                });
 
 
@@ -1091,7 +1109,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 //            var currentSkill = GameController.Player.GetComponent<Actor>().CurrentAction?.Skill;
 //            var window = GameController.Window.GetWindowRectangleTimeCache;
 
-           
+
 //            //if (GameController.Player.GetComponent<Actor>().Action == (ActionFlags)16386 ||
 //            //    (currentSkill != null && currentSkill.Name.Contains("BlinkPlayer")))
 //            //{
