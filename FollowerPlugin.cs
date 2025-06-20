@@ -377,6 +377,17 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 LogError($"My Travel Skill: {myTravelSkill?.Name} {myTravelSkill?.SkillSlotIndex}");
                 if (myTravelSkill != null)
                 {
+                    if(Settings.PartySubMenu.UseInputManager)
+                    {
+                        TryDoAction(() =>
+                        {
+                            var castWithTarget = GameController.PluginBridge
+                                .GetMethod<Action<Vector2i, uint>>("MagicInput2.CastSkillWithPosition");
+                            castWithTarget(leaderaction.Destination, 0x400);
+                            LogError($"Pressed Travel Skill: {myTravelSkill.Name} {myTravelSkill.SkillSlotIndex} with position {leaderaction.Destination} using InputManager");
+                        });
+                      
+                    }
                     var wts = GameController.IngameState.Data.GetGridScreenPosition(leaderaction.Destination);
                     Input.SetCursorPos(wts);
                     Thread.Sleep(20);
