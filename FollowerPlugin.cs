@@ -14,6 +14,7 @@ using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
 using ExileCore.Shared.Interfaces;
+using System.Threading.Tasks;
 namespace FollowerServer;
 
 public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -40,8 +41,8 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogError("No shortcuts found. Please check your game settings.", 100);
             return false;
         }
-        var buttonConnect = Settings.Party.ConnectClient;
-        buttonConnect.OnValueChanged += (v,a) =>
+       
+        Settings.Party.ConnectClient.OnValueChanged += (v,a) =>
         {
             if (a)
             {
@@ -65,6 +66,33 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (Settings.Server.ToggleLeaderServer)
         {
             ToggleLeaderServer();
+        }
+        if (Settings.Party.ConnectClient)
+        {
+            LogMessage("Connecting to party server...", 0.5f);
+            PartyClient = new PartyClient(this);
+            ConnectToPartyServer();
+        }
+        else
+        {
+            LogMessage("Party server not running.", 0.5f);
+            Settings.Server.ToggleLeaderServer.Value = false;
+
+            // Start a non-blocking reconnect task that tries to connect every 2 seconds (2000 ms)
+            _ = Task.Run(async () =>
+            {
+                while (!Settings.Party.ConnectClient && !Settings.Server.ToggleLeaderServer.Value)
+                {
+                    await Task.Delay(2000);
+                    if (Settings.Party.ConnectClient && PartyClient == null)
+                    {
+                        LogMessage("Attempting to reconnect to party server...", 0.5f);
+                        PartyClient = new PartyClient(this);
+                        ConnectToPartyServer();
+                        break;
+                    }
+                }
+            });
         }
         return true;
     }
