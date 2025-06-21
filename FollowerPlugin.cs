@@ -14,6 +14,7 @@ using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
 using ExileCore.Shared.Interfaces;
+using System.Threading.Tasks;
 namespace FollowerServer;
 
 public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -41,8 +42,8 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogError("No shortcuts found. Please check your game settings.", 100);
             return false;
         }
-        var buttonConnect = Settings.Party.ConnectClient;
-        buttonConnect.OnValueChanged += (v,a) =>
+       
+        Settings.Party.ConnectClient.OnValueChanged += (v,a) =>
         {
             if (a)
             {
@@ -67,7 +68,41 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             ToggleLeaderServer();
         }
+        if (Settings.Party.ConnectClient)
+        {
+            _ = Task.Run(async () =>
+            {
+                while (!Settings.Party.ConnectClient && !Settings.Server.ToggleLeaderServer.Value)
+                {
+                    await Task.Delay(2000);
+                    if (Settings.Party.ConnectClient && (PartyClient == null|| !PartyClient.IsConnected))
+                    {
+                        // Attempt to reconnect to the party server
+                        //check if server is running 
+
+                        LogMessage("Attempting to reconnect to party server...", 0.5f);
+
+                        if(PartyClient == null)
+                            PartyClient = new PartyClient(this);
+                        else
+                            ConnectToPartyServer();
+                        break;
+                    }
+                }
+            });
+
+        }
+
         return true;
+    }
+    private void ConnectToPartyServer()
+    {
+        if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
+        {
+            PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
+            return;
+        }
+        PartyClient.Connect();
     }
     public override Job Tick()
     {
@@ -393,15 +428,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 Skill = GameController.IngameState.IngameUi.SkillBar.Skills[i]
             });
         }
-    }
-    private void ConnectToPartyServer()
-    {
-        if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
-        {
-            PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
-            return;
-        }
-        PartyClient.Connect();
     }
     private void ToggleLeaderServer()
     {
