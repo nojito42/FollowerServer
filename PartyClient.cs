@@ -29,14 +29,23 @@ public class PartyClient(FollowerPlugin plugin)
 
     public void Connect()
     {
+        if (!IsServerAvailable(ServerIp, _serverPort, 1000))
+        {
+            _plugin.LogError("Serveur injoignable, connexion annulée.");
+            return;
+        }
+
         try
         {
             _client = new TcpClient(ServerIp, _serverPort);
             _stream = _client.GetStream();
 
-            Thread receiveThread = new Thread(ReceiveMessages);
-            receiveThread.IsBackground = true;
+            Thread receiveThread = new Thread(ReceiveMessages)
+            {
+                IsBackground = true
+            };
             receiveThread.Start();
+
             SendMessage(MessageType.Order, "Hello from client!");
         }
         catch (Exception ex)
@@ -44,6 +53,24 @@ public class PartyClient(FollowerPlugin plugin)
             _plugin.LogError($"Erreur lors de la connexion au serveur : {ex.Message}");
         }
     }
+
+    private bool IsServerAvailable(string ip, int port, int timeoutMs = 1000)
+    {
+        try
+        {
+            using (var client = new TcpClient())
+            {
+                var result = client.BeginConnect(ip, port, null, null);
+                bool success = result.AsyncWaitHandle.WaitOne(timeoutMs);
+                return success && client.Connected;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public void SendMessage(MessageType messageType, string content)
     {
         if (_stream != null)
