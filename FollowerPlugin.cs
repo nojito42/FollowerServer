@@ -68,34 +68,42 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             ToggleLeaderServer();
         }
-        if (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
-        {
-            _ = Task.Run(async () =>
-            {
-                while (Settings.Party.ConnectClient && (PartyClient == null || !PartyClient.IsConnected))
+        
+            ConnectTask();
 
-                {
-                    
-                    
-                        // Attempt to reconnect to the party server
-                        //check if server is running 
-
-                        LogMessage("Attempting to reconnect to party server...", 0.5f);
-
-                        if(PartyClient == null)
-                            PartyClient = new PartyClient(this);
-                        else
-                            ConnectToPartyServer();
-                      
-                    
-                    await Task.Delay(1000);
-                }
-            });
-
-        }
+        
 
         return true;
     }
+
+    private void ConnectTask()
+    {
+        if (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
+        {
+            _ = Task.Run(async () =>
+        {
+            while (Settings.Party.ConnectClient && (PartyClient == null || !PartyClient.IsConnected))
+
+            {
+
+
+                // Attempt to reconnect to the party server
+                //check if server is running 
+
+                LogMessage("Attempting to reconnect to party server...", 0.5f);
+
+                if (PartyClient == null)
+                    PartyClient = new PartyClient(this);
+                else
+                    ConnectToPartyServer();
+
+
+                await Task.Delay(1000);
+            }
+        });
+        }
+    }
+
     private void ConnectToPartyServer()
     {
         if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
@@ -107,6 +115,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override Job Tick()
     {
+        
         LogMessage("FollowerPlugin Tick", 0.5f);
         var pt = GameController.Party();
 
@@ -123,6 +132,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             if (!Settings.Server.ToggleLeaderServer)
             {
+                ConnectTask();
                 FollowerBehavior();
             }
         }
