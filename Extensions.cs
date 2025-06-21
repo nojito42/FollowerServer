@@ -8,7 +8,9 @@ using Shortcut = GameOffsets.Shortcut;
 using System.Numerics;
 using System.Threading;
 using System.Windows.Forms;
-namespace FollowerPlugin;
+using FollowerPlugin;
+
+namespace FollowerServer;
 
 public static class Extensions
 {
@@ -57,6 +59,20 @@ public static class Extensions
             }
             Thread.Sleep(delayMS);
         }
+        return true;
+    }
+}
+public static class FollowerPluginExtensions
+{
+    public static DateTime lastActionTime = DateTime.MinValue;
+    public static int ActionCooldownMS = 50;
+    public static bool TryDoAction(this FollowerPlugin p, Action act)
+    {
+        if ((DateTime.Now - lastActionTime).TotalMilliseconds < ActionCooldownMS)
+            return false;
+
+        lastActionTime = DateTime.Now;
+        act();
         return true;
     }
 }

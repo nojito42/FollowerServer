@@ -209,27 +209,12 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         ManageLeaderOnSameMap();
 
 
-    }
-
-    private DateTime lastActionTime = DateTime.MinValue;
-    private const int ActionCooldownMS = 50;
-
-    private bool TryDoAction(Action act)
-    {
-        if ((DateTime.Now - lastActionTime).TotalMilliseconds < ActionCooldownMS)
-            return false;
-
-        lastActionTime = DateTime.Now;
-        act();
-        return true;
-    }
-
+    }  
     private void ManageLeaderOnSameMap()
     {
         var leaderEntity = Leader.Entity;
         var playerEntity = GameController.Player;
         SetFollowerSkillsAndShortcuts();
-
         if (leaderEntity != null)
         {
             var leaderaction = leaderEntity.GetComponent<Actor>().CurrentAction;
@@ -241,7 +226,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 if (myTravelSkill != null)
                 {
 
-                    TryDoAction(() =>
+                    this.TryDoAction(() =>
                     {
                         var wts = GameController.IngameState.Data.GetGridScreenPosition(leaderaction.Destination);
                         Input.SetCursorPos(wts);
@@ -267,7 +252,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         LogError($"Cry Skill {crySkill.Name} is already active, skipping.");
                         continue;
                     }
-                    TryDoAction(() =>
+                    this.TryDoAction(() =>
                     {
                         LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
                         var scs = shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
@@ -301,7 +286,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         var lastNode = pf.PathingNodes.Last();
                         if (Settings.PartySubMenu.UseInputManager)
                         {
-                            TryDoAction(() =>
+                            this.TryDoAction(() =>
                             {
                                 var castWithPos = GameController.PluginBridge
                                     .GetMethod<Action<Vector2i, uint>>("MagicInput2.CastSkillWithPosition");
@@ -312,7 +297,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         {
                             var screenPos = GameController.IngameState.Camera.WorldToScreen(
                                 GameController.IngameState.Data.ToWorldWithTerrainHeight(lastNode));
-                            TryDoAction(() =>
+                            this.TryDoAction(() =>
                             {
                                 Input.SetCursorPos(screenPos);
                                 if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
@@ -326,7 +311,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     {
                         if (Settings.PartySubMenu.UseInputManager)
                         {
-                            TryDoAction(() =>
+                            this.TryDoAction(() =>
                             {
                                 var castWithTarget = GameController.PluginBridge
                                     .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
@@ -337,7 +322,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         {
                             var playerscreenpos = GameController.IngameState.Camera.WorldToScreen(leaderEntity.PosNum);
 
-                            TryDoAction(() =>
+                            this.TryDoAction(() =>
                             {
                                 Input.SetCursorPos(playerscreenpos);
                                 if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
@@ -372,8 +357,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
                 ReleaseKeys();
             }
-
-
         }
     }
     private void ReleaseKeys()
@@ -515,9 +498,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             {
                 curString = GameController.Player.GetComponent<Actor>().CurrentAction.Skill.Name;
             }
-
             Graphics.DrawText($"Using Ability {curString}", new Vector2(100, 120));
-
             if (Settings.ServerSubMenu.DrawFollowersCircle)
             {
                 var pt = GameController.IngameState.IngameUi.PartyElement.PlayerElements.ToList();
@@ -548,41 +529,35 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
     }
+    #region DisposeClose
     public override void Dispose()
     {
-        LogError("Disposing FollowerPlugin resources.", 5);
-        PartyClient?.Disconnect();
-        PartyClient ??= null;
-        PartyServer?.Stop();
-        PartyServer ??= null;
+       DisconnectWithMessage("Disposing FollowerPlugin.");
         base.Dispose();
     }
-
     public override void OnClose()
     {
-        LogError("Closing FollowerPlugin.", 5);
-        PartyClient?.Disconnect();
-        PartyClient ??= null;
-        PartyServer?.Stop();
-        PartyServer ??= null;
+       DisconnectWithMessage("Closing FollowerPlugin.");
         base.OnClose(); 
     }
     public override void OnPluginDestroyForHotReload()
     {
-        LogError("Destroying FollowerPlugin for hot reload.", 5);
-        PartyClient?.Disconnect();
-        PartyClient ??= null;
-        PartyServer?.Stop();
-        PartyServer ??= null;
+        DisconnectWithMessage("Destroying FollowerPlugin for hot reload.");
         base.OnPluginDestroyForHotReload();
     }
     public override void OnUnload()
     {
-        LogError("Unloading FollowerPlugin.", 5);
-        PartyClient?.Disconnect();
-        PartyClient ??= null;
-        PartyServer?.Stop();
-        PartyServer ??= null;
+        DisconnectWithMessage("Unloading FollowerPlugin.");
         base.OnUnload();
     }
+    private void DisconnectWithMessage(string message)
+    {
+        LogError(message, 5);
+        PartyClient?.Disconnect();
+        PartyClient = null;
+        PartyServer?.Stop();
+        PartyServer = null;
+    }
+    #endregion
 }
+

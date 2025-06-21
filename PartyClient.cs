@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Numerics;
 using Newtonsoft.Json;
-using FollowerPlugin;
 using System.Windows.Forms;
 using ExileCore.Shared.Helpers;
 using GameOffsets.Native;
@@ -24,12 +23,17 @@ public class PartyClient(FollowerPlugin plugin)
     private NetworkStream _stream;
     private readonly FollowerPlugin _plugin = plugin;
     private string ServerIp => _plugin.Settings.ServerSubMenu.ServerIP; // Adresse IP du serveur (leader)
-    private readonly int _serverPort = 5051; // Port du serveur
     public bool IsConnected => _client != null && _client.Connected;
 
     public void Connect()
     {
-        if (!IsServerAvailable(ServerIp, _serverPort, 200))
+        if (!int.TryParse(_plugin.Settings.ServerSubMenu.Port, out int port))
+        {
+            _plugin.LogError("Le port spécifié est invalide. Connexion annulée.");
+            return;
+        }
+
+        if (!IsServerAvailable(ServerIp, port, 500))
         {
             _plugin.LogError("Serveur injoignable, connexion annulée.");
             return;
@@ -37,10 +41,10 @@ public class PartyClient(FollowerPlugin plugin)
 
         try
         {
-            _client = new TcpClient(ServerIp, _serverPort);
+            _client = new TcpClient(ServerIp, port);
             _stream = _client.GetStream();
 
-            Thread receiveThread = new Thread(ReceiveMessages)
+            Thread receiveThread = new(ReceiveMessages)
             {
                 IsBackground = true
             };

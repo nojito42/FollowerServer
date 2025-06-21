@@ -16,7 +16,6 @@ public class PartyServer
     private FollowerPlugin _plugin;
     public bool IsRunning => _isRunning;
 
-    private readonly int _port = 5051;
     public readonly string ServerIP;
 
     public string username = "user";
@@ -29,7 +28,8 @@ public class PartyServer
     {
         _plugin = plugin;
         ServerIP = GetLocalIPAddress();
-        _plugin.LogError($"Serveur initialisé sur {ServerIP}:{_port}.");
+
+       
     }
 
     public void Start()
@@ -40,14 +40,21 @@ public class PartyServer
             return;
         }
 
-        if (_server == null) _server = new TcpListener(System.Net.IPAddress.Parse(ServerIP), _port);
+        if (!int.TryParse(_plugin.Settings.ServerSubMenu.Port, out int port))
+        {
+            _plugin.LogError("Le port spécifié est invalide. Initialisation du serveur annulée.");
+            return;
+        }
+        _plugin.LogError($"Serveur initialisé sur {ServerIP}:{port}.");
+
+        if (_server == null) _server = new TcpListener(System.Net.IPAddress.Parse(ServerIP), port);
 
         Thread serverThread = new Thread(() =>
         {
             try
             {
                 _server.Start();
-                _plugin.LogError($"Serveur démarré sur {ServerIP}:{_port}. En attente de connexions...");
+                _plugin.LogError($"Serveur démarré sur {ServerIP}:{port}. En attente de connexions...");
                 _isRunning = true;
 
                 while (_isRunning)

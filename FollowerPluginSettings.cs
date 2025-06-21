@@ -21,6 +21,8 @@ public class ServerSubMenu
     public RangeNode<int> CircleThickness { get; set; } = new RangeNode<int>(3, 2, 10);
     public RangeNode<int> CircleAlpha { get; set; } = new RangeNode<int>(150, 10, 255);
     public TextNode ServerIP { get; set; } = new TextNode("192.168.1.120");
+
+    public TextNode Port { get; set; } = new TextNode("5051");
     public ButtonNode ConnectClient { get; set; } = new ButtonNode();
 
     public RangeNode<int> ServerTick { get; set; } = new RangeNode<int>(100, 10, 1000);
