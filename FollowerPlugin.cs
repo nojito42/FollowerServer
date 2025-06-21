@@ -29,7 +29,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public List<PlayerSkill> LeaderSkills { get; set; } = [];
     public PartyServer PartyServer { get; private set; }
     public PartyClient PartyClient { get; private set; }
-    public DateTime LastLeaderInput { get; set; } = DateTime.Now;
 
     public override bool Initialise()
     {
@@ -73,7 +72,18 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         LogMessage("FollowerPlugin Tick", 0.5f);
         var pt = GameController.Party();
-
+        if(Leader == null)
+        {
+            var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
+            if (leaderElement == null)
+                return null;
+            Leader = new Leader
+            {
+                LeaderName = leaderElement[0].Text,
+                Element = leaderElement,
+                LastTargetedPortalOrTransition = null
+            };
+        }
         Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
         if (Settings.Server.ToggleLeaderServer.Value)
         {
@@ -112,15 +122,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (pt == null || Settings.Party.LeaderSelect.Value == null)
             return;
 
-        var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
-        if (leaderElement == null)
-            return;
-        Leader = new Leader
-        {
-            LeaderName = leaderElement[0].Text,
-            Element = leaderElement,
-            LastTargetedPortalOrTransition = null
-        };
+       
         // Cas 1 : On est en hideout, et le leader est en map
         if (GameController.Area.CurrentArea.IsHideout && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
         {
@@ -470,12 +472,12 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         else
         {
-            if (DateTime.Now.Subtract(LastLeaderInput).TotalMilliseconds < Settings.Server.ServerTick)
+            if (DateTime.Now.Subtract(Leader.LastLeaderInput).TotalMilliseconds < Settings.Server.ServerTick)
             {
                 return;
             }
 
-            LastLeaderInput = DateTime.Now; // Move this here, before processing multiple skills
+            Leader.LastLeaderInput = DateTime.Now; // Move this here, before processing multiple skills
             var mouseCoords = Input.MousePositionNum;
             var currentSkill = GameController.Player.GetComponent<Actor>().CurrentAction?.Skill;
             var window = GameController.Window.GetWindowRectangleTimeCache;

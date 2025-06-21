@@ -3,6 +3,7 @@ using ExileCore.PoEMemory;
 using ExileCore.PoEMemory.Components;
 using ExileCore.PoEMemory.MemoryObjects;
 using ExileCore.Shared.Enums;
+using System;
 using System.Linq;
 
 namespace FollowerPlugin;
@@ -17,4 +18,7 @@ public class Leader
 
     public Entity Entity => Core.Current.GameController.EntityListWrapper.ValidEntitiesByType[EntityType.Player]
         .FirstOrDefault(entity => entity != null && entity.IsValid && entity.Type == EntityType.Player && entity.GetComponent<Player>()?.PlayerName == Element[0].Text);
+
+    public DateTime LastLeaderInput { get; set; } = DateTime.Now;
+
 }
