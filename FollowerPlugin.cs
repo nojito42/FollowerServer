@@ -68,7 +68,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             ToggleLeaderServer();
         }
-        if (Settings.Party.ConnectClient)
+        if (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
         {
             _ = Task.Run(async () =>
             {
