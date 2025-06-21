@@ -29,6 +29,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public List<PlayerSkill> LeaderSkills { get; set; } = [];
     public PartyServer PartyServer { get; private set; }
     public PartyClient PartyClient { get; private set; }
+    public DateTime LastLeaderInput { get; set; } = DateTime.Now;
 
     public override bool Initialise()
     {
@@ -469,12 +470,12 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         else
         {
-            if (DateTime.Now.Subtract(Leader.LastLeaderInput).TotalMilliseconds < Settings.Server.ServerTick)
+            if (DateTime.Now.Subtract(LastLeaderInput).TotalMilliseconds < Settings.Server.ServerTick)
             {
                 return;
             }
 
-            Leader.LastLeaderInput = DateTime.Now; // Move this here, before processing multiple skills
+            LastLeaderInput = DateTime.Now; // Move this here, before processing multiple skills
             var mouseCoords = Input.MousePositionNum;
             var currentSkill = GameController.Player.GetComponent<Actor>().CurrentAction?.Skill;
             var window = GameController.Window.GetWindowRectangleTimeCache;
