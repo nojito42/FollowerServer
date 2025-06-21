@@ -28,36 +28,6 @@ public static class Extensions
     }
     public static Element Party(this GameController gc) => gc.IngameState.IngameUi.PartyElement.Children[0];
     public static bool IsLeaderOnSameMap(this Leader l) => l.Element?.ChildCount == 3;
-    public static Vector3 ParseVector3(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            throw new ArgumentException("Input cannot be null or empty.", nameof(input));
-        }
-
-        // Remove angle brackets and normalize the separators
-        input = input.Replace("<", "").Replace(">", "").Replace(" ", "").Replace(",", ".");
-
-        // Split the string into components
-        string[] components = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-        if (components.Length != 3)
-        {
-            throw new FormatException("Input string must contain exactly three components.");
-        }
-
-        // Parse each component into a float
-        if (float.TryParse(components[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float x) &&
-            float.TryParse(components[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float y) &&
-            float.TryParse(components[2], NumberStyles.Float, CultureInfo.InvariantCulture, out float z))
-        {
-            return new Vector3(x, y, z);
-        }
-        else
-        {
-            throw new FormatException("One or more components could not be parsed as float.");
-        }
-    }
     public static bool IsShortCutPressed(this Shortcut shortcut)
     {
         return shortcut.MainKey != ConsoleKey.None &&
@@ -88,10 +58,5 @@ public static class Extensions
             Thread.Sleep(delayMS);
         }
         return true;
-    }
-    public static Shortcut GetShortcutByNameContains(this FollowerServer.FollowerPlugin p, string name)
-    {
-        //p.GameController.IngameState.ShortcutSettings.Shortcuts
-        return p.shortcuts.FirstOrDefault(s => s.ToString().Contains(name));
     }
 }

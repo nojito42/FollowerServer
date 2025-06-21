@@ -136,7 +136,13 @@ public class PartyClient(FollowerPlugin plugin)
         }
         finally
         {
-            _client.Close();
+            if(_client != null && _client.Connected)
+            {
+                _stream?.Close();
+                _client.Close();
+                _client = null;
+            }
+            
             _plugin.LogError("Déconnecté du serveur.");
         }
     }
@@ -223,8 +229,11 @@ public class PartyClient(FollowerPlugin plugin)
     {
         if (_client != null)
         {
+            _stream?.Close();
             _client.Close();
+            _stream = null;
             _client = null;
+
         }
     }
 }
