@@ -86,7 +86,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             PartyClient = new PartyClient(this);
                         else
                             ConnectToPartyServer();
-                        break;
+                      
                     
                     await Task.Delay(1000);
                 }
