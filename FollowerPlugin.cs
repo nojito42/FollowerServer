@@ -76,8 +76,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 {
                     
-                    if (Settings.Party.ConnectClient && (PartyClient == null|| !PartyClient.IsConnected))
-                    {
+                    
                         // Attempt to reconnect to the party server
                         //check if server is running 
 
@@ -88,7 +87,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         else
                             ConnectToPartyServer();
                         break;
-                    }
+                    
                     await Task.Delay(1000);
                 }
             });
