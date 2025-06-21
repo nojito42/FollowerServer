@@ -550,8 +550,29 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override void Dispose()
     {
+
         PartyClient?.Disconnect();
         PartyServer?.Stop();
         base.Dispose();
+    }
+
+    public override void OnClose()
+    {
+
+        PartyClient?.Disconnect();
+        PartyServer?.Stop();
+        base.OnClose(); 
+    }
+    public override void OnPluginDestroyForHotReload()
+    {
+        PartyClient?.Disconnect();
+        PartyServer?.Stop();
+        base.OnPluginDestroyForHotReload();
+    }
+    public override void OnUnload()
+    {
+        PartyClient?.Disconnect();
+        PartyServer?.Stop();
+        base.OnUnload();
     }
 }
