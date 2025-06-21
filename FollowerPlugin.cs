@@ -41,20 +41,29 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogError("No shortcuts found. Please check your game settings.", 100);
             return false;
         }
-        var buttonConnect = Settings.ServerSubMenu.ConnectClient;
-        buttonConnect.OnPressed += () =>
+        var buttonConnect = Settings.Party.ConnectClient;
+        buttonConnect.OnValueChanged += (v,a) =>
         {
-            PartyClient = new PartyClient(this);
-
-            ConnectToPartyServer();
+            if (a)
+            {
+                LogMessage("Connecting to party server...", 0.5f);
+                PartyClient = new PartyClient(this);
+                ConnectToPartyServer();
+            }
+            else
+            {
+                LogMessage("Disconnecting from party server...", 0.5f);
+                PartyClient?.Disconnect();
+                PartyClient = null;
+            }
         };
 
-        Settings.ServerSubMenu.ToggleLeaderServer.OnValueChanged += (foe, ar) =>
+        Settings.Server.ToggleLeaderServer.OnValueChanged += (foe, ar) =>
         {
             PartyServer = new PartyServer(this);
             ToggleLeaderServer();
         };
-        if (Settings.ServerSubMenu.ToggleLeaderServer)
+        if (Settings.Server.ToggleLeaderServer)
         {
             ToggleLeaderServer();
         }
@@ -65,8 +74,8 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         LogMessage("FollowerPlugin Tick", 0.5f);
         var pt = GameController.Party();
 
-        Settings.PartySubMenu.PartyMembers.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
-        if (Settings.ServerSubMenu.ToggleLeaderServer.Value)
+        Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
+        if (Settings.Server.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
             {
@@ -76,7 +85,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         else
         {
-            if (!Settings.ServerSubMenu.ToggleLeaderServer)
+            if (!Settings.Server.ToggleLeaderServer)
             {
                 FollowerBehavior();
             }
@@ -87,7 +96,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         LogMessage("FollowerBehavior Tick", 0.5f);
         var pt = GameController.Party();
-        Settings.PartySubMenu.PartyMembers.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
+        Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
         SetFollowerSkillsAndShortcuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground())
         {
@@ -100,10 +109,10 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogMessage("Flagged panels found, skipping follower behavior.", 0.5f);
             return;
         }
-        if (pt == null || Settings.PartySubMenu.PartyMembers.Value == null)
+        if (pt == null || Settings.Party.LeaderSelect.Value == null)
             return;
 
-        var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.PartySubMenu.PartyMembers.Value);
+        var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
         if (leaderElement == null)
             return;
         Leader = new Leader
@@ -117,7 +126,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             LogMessage($"Leader {Leader.LeaderName} is in a different map.");
 
-            if (Settings.PartySubMenu.Follow)
+            if (Settings.Party.Follow)
             {
                 var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
                     .Where(x => x.IsValid && x.IsTargetable)
@@ -219,7 +228,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             var leaderaction = leaderEntity.GetComponent<Actor>().CurrentAction;
             bool isTravelSkill = leaderaction != null && leaderaction.Skill != null && leaderaction.Skill.GetStat(GameStat.SkillIsTravelSkill) > 0;
-            if (Settings.PartySubMenu.UseSmartTPSkill && isTravelSkill)
+            if (Settings.Party.UseSmartTPSkill && isTravelSkill)
             {
                 var myTravelSkill = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.GetStat(GameStat.SkillIsTravelSkill) > 0 && x.IsOnSkillBar);
                 LogError($"My Travel Skill: {myTravelSkill?.Name} {myTravelSkill?.SkillSlotIndex}");
@@ -240,7 +249,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     });
                 }
             }
-            if (Settings.PartySubMenu.UseCriesAuto && leaderEntity.DistancePlayer < 20 && (GameController.Area.CurrentArea.IsHideout == false && GameController.Area.CurrentArea.IsTown == false))
+            if (Settings.Party.UseCriesAuto && leaderEntity.DistancePlayer < 20 && (GameController.Area.CurrentArea.IsHideout == false && GameController.Area.CurrentArea.IsTown == false))
             {
                 var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
                     .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false)
@@ -261,12 +270,12 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     });
                 }
             }
-            if (leaderEntity.DistancePlayer > Settings.PartySubMenu.LeaderMaxDistance.Value)
+            if (leaderEntity.DistancePlayer > Settings.Party.LeaderMaxDistance.Value)
             {
                 ReleaseKeys();
             }
 
-            else if (leaderEntity.DistancePlayer > Settings.PartySubMenu.KeepLeaderInRange.Value && Settings.PartySubMenu.Follow)
+            else if (leaderEntity.DistancePlayer > Settings.Party.KeepLeaderInRange.Value && Settings.Party.Follow)
             {
                 var moveSkill = MoveSkill;
                 var playeraction = playerEntity.GetComponent<Actor>().Action;
@@ -284,7 +293,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     if (pf.PathingNodes.Count > 0)
                     {
                         var lastNode = pf.PathingNodes.Last();
-                        if (Settings.PartySubMenu.UseInputManager)
+                        if (Settings.Party.UseInputManager)
                         {
                             this.TryDoAction(() =>
                             {
@@ -307,9 +316,9 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             });
                         }
                     }
-                    else if (!playerisattacking && playerEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
+                    else if (!playerisattacking && playerEntity.DistancePlayer <= Settings.Party.KeepLeaderInRange.Value)
                     {
-                        if (Settings.PartySubMenu.UseInputManager)
+                        if (Settings.Party.UseInputManager)
                         {
                             this.TryDoAction(() =>
                             {
@@ -334,7 +343,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     }
                 }
             }
-            else if (leaderEntity.DistancePlayer <= Settings.PartySubMenu.KeepLeaderInRange.Value)
+            else if (leaderEntity.DistancePlayer <= Settings.Party.KeepLeaderInRange.Value)
             {
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount == 3).FirstOrDefault();
                 if (opt != null && opt[2] != null && opt[2].IsVisible)
@@ -387,7 +396,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void ConnectToPartyServer()
     {
-        if (PartyClient.IsConnected && !Settings.ServerSubMenu.ToggleLeaderServer)
+        if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
         {
             PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
             return;
@@ -396,18 +405,18 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void ToggleLeaderServer()
     {
-        if (Settings.ServerSubMenu.ToggleLeaderServer.Value)
+        if (Settings.Server.ToggleLeaderServer.Value)
         {
             PartyServer ??= new PartyServer(this);
             
-            if (Settings.ServerSubMenu.ToggleLeaderServer.Value && !PartyServer.IsRunning)
+            if (Settings.Server.ToggleLeaderServer.Value && !PartyServer.IsRunning)
             {
                 LogError("Starting server...");
                 PartyServer.Start();
             }
             else
             {
-                Settings.ServerSubMenu.ToggleLeaderServer.Value = false;
+                Settings.Server.ToggleLeaderServer.Value = false;
             }
         }
         else
@@ -439,7 +448,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             return;
         }
 
-        if (!Settings.ServerSubMenu.ToggleLeaderServer.Value)
+        if (!Settings.Server.ToggleLeaderServer.Value)
         {
             LogMessage("Not the leader or server host. Exiting Tick.");
             return;
@@ -461,7 +470,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         else
         {
-            if (DateTime.Now.Subtract(LastLeaderInput).TotalMilliseconds < Settings.ServerSubMenu.ServerTick)
+            if (DateTime.Now.Subtract(LastLeaderInput).TotalMilliseconds < Settings.Server.ServerTick)
             {
                 return;
             }
@@ -489,7 +498,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public override void Render()
     {
         base.Render();
-        if (Settings.ServerSubMenu.ToggleLeaderServer && PartyServer != null && PartyServer.IsRunning)
+        if (Settings.Server.ToggleLeaderServer && PartyServer != null && PartyServer.IsRunning)
         {
             Graphics.DrawText($"Server is running on {PartyServer.ServerIP}", new Vector2(100, 100));
             var curAction = GameController.Player.GetComponent<Actor>().Action;
@@ -499,7 +508,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 curString = GameController.Player.GetComponent<Actor>().CurrentAction.Skill.Name;
             }
             Graphics.DrawText($"Using Ability {curString}", new Vector2(100, 120));
-            if (Settings.ServerSubMenu.DrawFollowersCircle)
+            if (Settings.Server.DrawFollowersCircle)
             {
                 var pt = GameController.IngameState.IngameUi.PartyElement.PlayerElements.ToList();
                 if(pt == null || pt.Count == 0)
@@ -522,7 +531,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     var gp = GameController.IngameState.Data.GetWorldScreenPosition(e.PosNum);
                     if (GameController.Window.GetWindowRectangleTimeCache.Contains(gp))
                     {
-                        Graphics.DrawCircleInWorld(e.PosNum, Settings.ServerSubMenu.CircleRadius, colors[i] with { A = (byte)Settings.ServerSubMenu.CircleAlpha}, Settings.ServerSubMenu.CircleThickness);
+                        Graphics.DrawCircleInWorld(e.PosNum, Settings.Server.CircleRadius, colors[i] with { A = (byte)Settings.Server.CircleAlpha}, Settings.Server.CircleThickness);
                         i++;
                     }
                 });

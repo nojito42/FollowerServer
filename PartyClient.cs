@@ -22,12 +22,12 @@ public class PartyClient(FollowerPlugin plugin)
     private TcpClient _client;
     private NetworkStream _stream;
     private readonly FollowerPlugin _plugin = plugin;
-    private string ServerIp => _plugin.Settings.ServerSubMenu.ServerIP; // Adresse IP du serveur (leader)
+    private string ServerIp => _plugin.Settings.Party.ServerIP; // Adresse IP du serveur (leader)
     public bool IsConnected => _client != null && _client.Connected;
 
     public void Connect()
     {
-        if (!int.TryParse(_plugin.Settings.ServerSubMenu.Port, out int port))
+        if (!int.TryParse(_plugin.Settings.Server.Port, out int port))
         {
             _plugin.LogError("Le port spécifié est invalide. Connexion annulée.");
             return;
@@ -58,7 +58,7 @@ public class PartyClient(FollowerPlugin plugin)
         }
     }
 
-    private bool IsServerAvailable(string ip, int port, int timeoutMs = 1000)
+    private static bool IsServerAvailable(string ip, int port, int timeoutMs = 1000)
     {
         try
         {
@@ -155,7 +155,7 @@ public class PartyClient(FollowerPlugin plugin)
         try
         {
             if (_plugin.GameController.Area.CurrentArea.IsHideout ||
-                (_plugin.Settings.PartySubMenu.FollowInTown == false && _plugin.GameController.Area.CurrentArea.IsTown) ||
+                (_plugin.Settings.Party.FollowInTown == false && _plugin.GameController.Area.CurrentArea.IsTown) ||
                 MenuWindow.IsOpened)
             {
                 return;
@@ -173,7 +173,7 @@ public class PartyClient(FollowerPlugin plugin)
             if (leaderEntity == null) return;
             var actorskill = _plugin.GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.SkillSlotIndex == inputIndex && x.Id != 10505);
 
-            if (actorskill != null && _plugin.Settings.PartySubMenu.UseSmartTPSkill && actorskill.GetStat(ExileCore.Shared.Enums.GameStat.SkillIsTravelSkill) > 0)
+            if (actorskill != null && _plugin.Settings.Party.UseSmartTPSkill && actorskill.GetStat(ExileCore.Shared.Enums.GameStat.SkillIsTravelSkill) > 0)
             {
                 return;
             }
@@ -181,8 +181,8 @@ public class PartyClient(FollowerPlugin plugin)
             var clientWindow = _plugin.GameController.Window.GetWindowRectangleTimeCache;
             var mouse = input.MouseCoords;
 
-            float clickX = (mouse.X * clientWindow.Width) - _plugin.Settings.PartySubMenu.screenOffsetAdjustementX;
-            float clickY = (mouse.Y * clientWindow.Height) - _plugin.Settings.PartySubMenu.screenOffsetAdjustementY;
+            float clickX = (mouse.X * clientWindow.Width) - _plugin.Settings.Party.screenOffsetAdjustementX;
+            float clickY = (mouse.Y * clientWindow.Height) - _plugin.Settings.Party.screenOffsetAdjustementY;
             var clickPos = new Vector2(clickX, clickY);
 
             var leaderPos = leaderEntity.GridPosNum;

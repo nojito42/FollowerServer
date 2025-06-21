@@ -20,7 +20,7 @@ public class PartyServer
 
     public string username = "user";
 
-    public bool IsLeaderAndServerHost => _plugin.Settings.ServerSubMenu.ToggleLeaderServer.Value;
+    public bool IsLeaderAndServerHost => _plugin.Settings.Server.ToggleLeaderServer.Value;
 
     private List<TcpClient> _clients = new List<TcpClient>();  // Liste des clients connectés
 
@@ -40,7 +40,7 @@ public class PartyServer
             return;
         }
 
-        if (!int.TryParse(_plugin.Settings.ServerSubMenu.Port, out int port))
+        if (!int.TryParse(_plugin.Settings.Server.Port, out int port))
         {
             _plugin.LogError("Le port spécifié est invalide. Initialisation du serveur annulée.");
             return;
