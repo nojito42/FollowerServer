@@ -72,9 +72,10 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             _ = Task.Run(async () =>
             {
-                while (!Settings.Party.ConnectClient && !Settings.Server.ToggleLeaderServer.Value)
+                while (Settings.Party.ConnectClient && (PartyClient == null || !PartyClient.IsConnected))
+
                 {
-                    await Task.Delay(2000);
+                    
                     if (Settings.Party.ConnectClient && (PartyClient == null|| !PartyClient.IsConnected))
                     {
                         // Attempt to reconnect to the party server
@@ -88,6 +89,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             ConnectToPartyServer();
                         break;
                     }
+                    await Task.Delay(1000);
                 }
             });
 
