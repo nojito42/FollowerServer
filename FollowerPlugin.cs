@@ -14,7 +14,6 @@ using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
 using ExileCore.Shared.Interfaces;
-using System.Threading.Tasks;
 namespace FollowerServer;
 
 public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -41,8 +40,8 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogError("No shortcuts found. Please check your game settings.", 100);
             return false;
         }
-       
-        Settings.Party.ConnectClient.OnValueChanged += (v,a) =>
+        var buttonConnect = Settings.Party.ConnectClient;
+        buttonConnect.OnValueChanged += (v,a) =>
         {
             if (a)
             {
@@ -67,52 +66,14 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             ToggleLeaderServer();
         }
-        if (Settings.Party.ConnectClient)
-        {
-            LogMessage("Connecting to party server...", 0.5f);
-            PartyClient = new PartyClient(this);
-            ConnectToPartyServer();
-        }
-        else
-        {
-            LogMessage("Party server not running.", 0.5f);
-            Settings.Server.ToggleLeaderServer.Value = false;
-
-            // Start a non-blocking reconnect task that tries to connect every 2 seconds (2000 ms)
-            _ = Task.Run(async () =>
-            {
-                while (!Settings.Party.ConnectClient && !Settings.Server.ToggleLeaderServer.Value)
-                {
-                    await Task.Delay(2000);
-                    if (Settings.Party.ConnectClient && PartyClient == null)
-                    {
-                        LogMessage("Attempting to reconnect to party server...", 0.5f);
-                        PartyClient = new PartyClient(this);
-                        ConnectToPartyServer();
-                        break;
-                    }
-                }
-            });
-        }
         return true;
     }
     public override Job Tick()
     {
         LogMessage("FollowerPlugin Tick", 0.5f);
         var pt = GameController.Party();
-        var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
-        if (leaderElement != null)
-        {
-            Leader = new Leader
-            {
-                LeaderName = leaderElement[0].Text,
-                Element = leaderElement,
-                LastTargetedPortalOrTransition = null
-            };
-        }
 
         Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
-
         if (Settings.Server.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
@@ -150,7 +111,15 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (pt == null || Settings.Party.LeaderSelect.Value == null)
             return;
 
-       
+        var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
+        if (leaderElement == null)
+            return;
+        Leader = new Leader
+        {
+            LeaderName = leaderElement[0].Text,
+            Element = leaderElement,
+            LastTargetedPortalOrTransition = null
+        };
         // Cas 1 : On est en hideout, et le leader est en map
         if (GameController.Area.CurrentArea.IsHideout && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
         {
@@ -458,7 +427,6 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         var sc3 = shortcuts;
         var sc = sc3[0].ToString().Contains("MoveUp") ? sc3.Skip(9).Take(13).ToList() : sc3.Skip(7).Take(13).ToList();//sc2.Skip(5).Take(13).ToList();
-
         LeaderSkills.Clear();
         for (int i = 0; i < sc.Count; i++)
         {
