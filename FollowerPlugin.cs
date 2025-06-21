@@ -578,7 +578,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override void OnUnload()
     {
-        LogError("Unloading FollowerPlugins.", 5);
+        LogError("Unloading FollowerPlugin.", 5);
         PartyClient?.Disconnect();
         PartyClient ??= null;
         PartyServer?.Stop();
