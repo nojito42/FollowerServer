@@ -140,25 +140,6 @@ public class PartyClient(FollowerPlugin plugin)
             _plugin.LogError("Déconnecté du serveur.");
         }
     }
-    private List<PlayerSkill> SetLeaderSkillAndShortCuts()
-    {
-
-        var shortcuts = _plugin.shortcuts;
-        var sc = shortcuts.Skip(7).Take(13).ToList();
-        var foeskills = new List<PlayerSkill>();
-
-        for (int i = 0; i < sc.Count; i++)
-        {
-            var skillBarSkill = _plugin.GameController.IngameState.IngameUi.SkillBar.Skills[i];
-            foeskills.Add(new PlayerSkill
-            {
-                Shortcut = sc[i],
-                Skill = skillBarSkill
-            });
-        }
-        return foeskills;
-    }
-
     private void ProcessLeaderInput(LeaderInput input)
     {
         try
@@ -237,114 +218,7 @@ public class PartyClient(FollowerPlugin plugin)
     }
 
 
-    //private void ProcessLeaderInput(LeaderInput input)
-    //{
-    //    try
-    //    {
-    //        if (_plugin.GameController.Area.CurrentArea.IsHideout)
-    //            return;
 
-    //        Entity leaderEntity = _plugin.GameController.Entities?
-    //            .FirstOrDefault(x => x.Type == ExileCore.Shared.Enums.EntityType.Player &&
-    //                                 x.GetComponent<Player>()?.PlayerName == input.LeaderName);
-
-    //        var followerSkills = SetLeaderSkillAndShortCuts();
-    //        var scsAll = _plugin.shortcuts;
-    //        var scs = scsAll.Skip(7).Take(13).ToList();
-    //        var i = -1;
-
-    //        if (int.TryParse(input.RawInput, out var i1))
-    //        {
-    //            if (i1 <= 0)
-    //            {
-    //                _plugin.LogError($"Input non reconnu : {input.RawInput}");
-    //                return;
-    //            }
-    //        }
-
-    //        if (leaderEntity == null)
-    //            return;
-
-    //        if (_plugin.Settings.PartySubMenu.FollowInTown == false && _plugin.GameController.Area.CurrentArea.IsTown || MenuWindow.IsOpened)
-    //            return;
-
-    //        var actionDestination = leaderEntity.GetComponent<Actor>()?.CurrentAction?.Destination;
-
-
-    //        Vector2 leaderScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(leaderEntity.PosNum);
-    //        Vector2 followerScreenPos = _plugin.GameController.IngameState.Data.GetWorldScreenPosition(_plugin.GameController.Player.PosNum);
-
-    //        if (actionDestination != null && actionDestination.HasValue)
-    //        {
-    //            var worldTarget = actionDestination.Value.ToVector2Num();
-    //            var screenWorldTarget = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget);
-    //            //var screenDistance = followerScreenPos.Distance(leaderScreenPos);
-
-    //            //if (screenDistance < 1000) // éviter les positions trop éloignées ou invalides
-    //            //{
-    //            if (_plugin.GameController.Window.GetWindowRectangle().Contains(screenWorldTarget))
-    //                input.MouseCoords = screenWorldTarget;
-    //            else
-    //                _plugin.LogError($"Action destination hors de l'écran : {screenWorldTarget} pour {leaderEntity.GetComponent<Player>()?.PlayerName} à {leaderEntity.GridPosNum}.");
-    //            //}
-    //        }
-
-    //        //if (input.MouseCoords == Vector2.Zero)
-    //        //{
-    //        //    _plugin.LogError("MouseCoords vide, annulation du clic");
-    //        //    return;
-    //        //}
-
-    //        Vector2 clickPos;
-    //        var clientWindow = _plugin.GameController.Window.GetWindowRectangleTimeCache;
-
-    //        if (actionDestination == null || actionDestination == Vector2i.Zero)
-    //        {
-    //            float offsetX = followerScreenPos.X - leaderScreenPos.X;
-    //            float offsetY = followerScreenPos.Y - leaderScreenPos.Y;
-
-    //            float clickX = (input.MouseCoords.X * clientWindow.Width) - (offsetX + _plugin.Settings.PartySubMenu.screenOffsetAdjustementX);
-    //            float clickY = (input.MouseCoords.Y * clientWindow.Height) - (offsetY + _plugin.Settings.PartySubMenu.screenOffsetAdjustementY);
-
-    //            clickPos = new Vector2(clickX, clickY);
-    //        }
-    //        else
-    //        {
-    //            clickPos = input.MouseCoords;
-    //        }
-    //        _plugin.LogMessage($"Clic position: {clickPos}, Leader Position: {leaderEntity.GridPosNum}, Distance: {clickPos.Distance(actionDestination.Value)}");
-    //        if (_plugin.GameController.Window.GetWindowRectangleTimeCache.Contains(clickPos) || clickPos.Distance(leaderEntity.GridPosNum) <=10)
-    //        {
-    //            Input.SetCursorPos(clickPos);
-    //            Thread.Sleep(10);
-    //        }
-    //        else
-    //        {
-    //           clickPos =_plugin.GameController.IngameState.Data.GetGridScreenPosition(leaderEntity.GridPosNum);
-    //            Input.SetCursorPos(clickPos);
-    //            Thread.Sleep(10);
-
-    //        }
-
-    //        if (int.TryParse(input.RawInput, out var i2))
-    //        {
-    //            i = i2;
-    //            if (i >= 0 && i < scs.Count)
-    //            {
-    //                var sc = scs[i];
-    //                sc.PressShortCut(10);
-    //            }
-    //            else
-    //            {
-    //                _plugin.LogError($"Index de raccourci invalide : {i}");
-    //            }
-    //        }
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _plugin.LogError($"Erreur lors du traitement de l'input : {ex}");
-    //    }
-    //}
     public void Disconnect()
     {
         if (_client != null)
