@@ -100,8 +100,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         LogMessage("FollowerPlugin Tick", 0.5f);
         var pt = GameController.Party();
-        if(Leader == null)
-        {
+       
             var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
             if (leaderElement == null)
                 return null;
@@ -111,7 +110,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 Element = leaderElement,
                 LastTargetedPortalOrTransition = null
             };
-        }
+        
         Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
         if (Settings.Server.ToggleLeaderServer.Value)
         {
