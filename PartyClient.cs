@@ -29,7 +29,7 @@ public class PartyClient(FollowerPlugin plugin)
 
     public void Connect()
     {
-        if (!IsServerAvailable(ServerIp, _serverPort, 1000))
+        if (!IsServerAvailable(ServerIp, _serverPort, 200))
         {
             _plugin.LogError("Serveur injoignable, connexion annulée.");
             return;
