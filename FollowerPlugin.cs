@@ -550,7 +550,7 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override void Dispose()
     {
-
+        LogError("Disposing FollowerPlugin resources.", 5);
         PartyClient?.Disconnect();
         PartyServer?.Stop();
         base.Dispose();
@@ -558,19 +558,21 @@ public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
     public override void OnClose()
     {
-
+        LogError("Closing FollowerPlugin.", 5);
         PartyClient?.Disconnect();
         PartyServer?.Stop();
         base.OnClose(); 
     }
     public override void OnPluginDestroyForHotReload()
     {
+        LogError("Destroying FollowerPlugin for hot reload.", 5);
         PartyClient?.Disconnect();
         PartyServer?.Stop();
         base.OnPluginDestroyForHotReload();
     }
     public override void OnUnload()
     {
+        LogError("Unloading FollowerPlugin.", 5);
         PartyClient?.Disconnect();
         PartyServer?.Stop();
         base.OnUnload();
