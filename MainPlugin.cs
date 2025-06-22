@@ -247,8 +247,19 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var portalPosition = portal.BoundsCenterPosNum;
                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
 
+                if(Settings.Party.UseInputManager)
+                {
+                    this.TryDoAction(() =>
+                    {
+                        var castWithTarget = GameController.PluginBridge
+                            .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
+                        castWithTarget(portal, 0x400);
+                    });
+                }
+                
+
                 // Check visible + click
-                if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
+                else if (!Settings.Party.UseInputManager &&screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
                 {
                     Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                     Input.SetCursorPos(screenPos);
