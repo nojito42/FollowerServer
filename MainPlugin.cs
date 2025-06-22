@@ -225,6 +225,17 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         //cas 5 : Leader n'est pas du tout sur la même map
         if (Leader != null && (Leader.Entity == null || Leader.CurrentArea != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
         {
+            if(Settings.Party.UseInputManager)
+            {
+                this.TryDoAction(() =>
+                {
+                    var castWithTarget = GameController.PluginBridge
+                        .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
+                    castWithTarget(Leader.Entity, 0x400);
+                });
+            }
+            else
+            { 
             var leaderTpElement = Leader.Element.Children?[3];
             if (leaderTpElement?.IsActive == true)
             {
@@ -236,6 +247,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 Thread.Sleep(1000);
                 Leader.LastTargetedPortalOrTransition = null;
                 return;
+            }
             }
         }
         // Cas 2 : Leader est sur la même map et utilise une transition ou un portail
