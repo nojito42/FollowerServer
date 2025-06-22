@@ -215,7 +215,7 @@ public class PartyClient(MainPlugin plugin)
                 Thread.Sleep(10);
             }
            
-            var scs = _plugin.shortcuts.Skip(7).Take(13).ToList();
+            var scs = _plugin.Shortcuts.Skip(7).Take(13).ToList();
             if (inputIndex < scs.Count)
             {
                 scs[inputIndex].PressShortCut(10);

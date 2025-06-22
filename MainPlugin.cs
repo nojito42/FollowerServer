@@ -19,13 +19,14 @@ namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
-    public List<PlayerSkill> FollowerSkills = [];
+    public List<PlayerSkill> LocalPlayerSkills = [];
+    bool IsTaskRunning = false;
     public Leader Leader { get; private set; }
-    public PlayerSkill MoveSkill => FollowerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
-    public PlayerSkill AttackSkill => FollowerSkills.FirstOrDefault(x => x.Skill.Skill.IsAttack || x.Skill.Skill.IsSpell);
+    public PlayerSkill MoveSkill => LocalPlayerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
+    public PlayerSkill AttackSkill => LocalPlayerSkills.FirstOrDefault(x => x.Skill.Skill.IsAttack || x.Skill.Skill.IsSpell);
     DateTime lastMoveCheck = DateTime.Now;
     float lastMoveDelayMS = 20f; //ms
-    public IList<Shortcut> shortcuts;
+    public IList<Shortcut> Shortcuts { get; set; }
 
     public PartyServer PartyServer { get; private set; }
     public PartyClient PartyClient { get; private set; }
@@ -35,8 +36,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         var mem = GameController.Memory;
         var sc = GameController.IngameState.ShortcutSettings.Shortcuts;
-        shortcuts = GameController.IngameState.ShortcutSettings.Shortcuts;// sc3;
-        if (shortcuts == null || shortcuts.Count <= 5)
+        Shortcuts = GameController.IngameState.ShortcutSettings.Shortcuts;// sc3;
+        if (Shortcuts == null || Shortcuts.Count <= 5)
         {
             LogError("No shortcuts found. Please check your game settings.", 100);
             return false;
@@ -63,11 +64,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             PartyServer = new PartyServer(this);
             ToggleLeaderServer();
         };
-        if (Settings.Server.ToggleLeaderServer)
-        {
-            ToggleLeaderServer();
-        }
+       
 
+        //changé récemment peut break???
+        ToggleLeaderServer();
+        
+        //a bien verifier
         ConnectTask();
 
 
@@ -80,25 +82,19 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             _ = Task.Run(async () =>
         {
-            while (Settings.Party.ConnectClient && (PartyClient == null || !PartyClient.IsConnected))
+            while (Settings.Party.ConnectClient && (PartyClient == null || !PartyClient.IsConnected) && IsTaskRunning)
 
             {
-
-
-                // Attempt to reconnect to the party server
-                //check if server is running 
-
                 LogMessage("Attempting to reconnect to party server...", 0.5f);
 
                 if (PartyClient == null)
                     PartyClient = new PartyClient(this);
                 else
                     ConnectToPartyServer();
-
-
                 await Task.Delay(1000);
             }
         });
+            IsTaskRunning = false;
         }
     }
     private void ConnectToPartyServer()
@@ -114,9 +110,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
 
         LogMessage("FollowerPlugin Tick", 0.5f);
-        var pt = GameController.Party();
-
-        Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
+        SetLeader();
         if (Settings.Server.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
@@ -127,9 +121,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         else
         {
-            if (!Settings.Server.ToggleLeaderServer)
-            {
+            if (!IsTaskRunning && Settings.Party.ConnectClient)
                 ConnectTask();
+            if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
+            {
+              
+
                 FollowerBehavior();
             }
         }
@@ -139,7 +136,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         LogMessage("FollowerBehavior Tick", 0.5f);
 
-        SetFollowerSkillsAndShortcuts();
+        SetLocalSkillsAndShortCuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground())
         {
             LogMessage("Game not in focus or menu opened, skipping.", 0.5f);
@@ -256,7 +253,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         var leaderEntity = Leader.Entity;
         var playerEntity = GameController.Player;
-        SetFollowerSkillsAndShortcuts();
+        SetLocalSkillsAndShortCuts();
         if (leaderEntity != null)
         {
             var leaderaction = leaderEntity.GetComponent<Actor>().CurrentAction;
@@ -274,7 +271,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         Input.SetCursorPos(wts);
                         Thread.Sleep(50);
 
-                        var scs = shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
+                        var scs = Shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
                         scs.PressShortCut(10);
 
                         LogError($"Pressed Travel Skill: {myTravelSkill.Name} {myTravelSkill.SkillSlotIndex} with shortcut {scs.MainKey} {scs.Modifier}");
@@ -297,7 +294,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     this.TryDoAction(() =>
                     {
                         LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
-                        var scs = shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
+                        var scs = Shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
 
                         scs.PressShortCut(1);
                     });
@@ -413,14 +410,14 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
     }
-    private void SetFollowerSkillsAndShortcuts()
+    private void SetLocalSkillsAndShortCuts()
     {
-        var sc = shortcuts.Skip(7).Take(13).ToList();
-        FollowerSkills.Clear();
+        var sc = Shortcuts.Skip(7).Take(13).ToList();
+        LocalPlayerSkills.Clear();
 
         for (int i = 0; i < sc.Count; i++)
         {
-            FollowerSkills.Add(new PlayerSkill
+            LocalPlayerSkills.Add(new PlayerSkill
             {
                 Shortcut = sc[i],
                 Skill = GameController.IngameState.IngameUi.SkillBar.Skills[i]
@@ -448,7 +445,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             PartyServer.Stop();
         }
     }
-    private void SetLeaderSkillAndShortCuts()
+
+    public void SetLeader()
     {
         var pt = GameController.Party();
         if (pt == null || Settings.Party.LeaderSelect.Value == null)
@@ -457,16 +455,20 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
         if (leaderElement == null)
             return;
-   
+
         Leader = new Leader
         {
             Name = leaderElement[0].Text,
             Element = leaderElement,
             LastTargetedPortalOrTransition = null
         };
+    }
+    private void SetLeaderSkillAndShortCuts()
+    {
+  
 
 
-        var sc3 = shortcuts;
+        var sc3 = Shortcuts;
         var sc = sc3[0].ToString().Contains("MoveUp") ? sc3.Skip(9).Take(13).ToList() : sc3.Skip(7).Take(13).ToList();//sc2.Skip(5).Take(13).ToList();
         Leader.Skills.Clear();
         for (int i = 0; i < sc.Count; i++)
@@ -494,16 +496,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             return;
         }
 
-        SetLeaderSkillAndShortCuts();
+       
         var actor = GameController.Player.GetComponent<Actor>();
 
-        if (Leader.Skills == null)
-        {
-            LogMessage("LeaderSkills is null. Exiting Tick.");
-            return;
-        }
-        var foeSkill = Leader.Skills.Where(x => x.Shortcut.IsShortCutPressed() /*&& Skills.IndexOf(x) > 0*/);
-        if (foeSkill == null)
+      
+        var pressedSkills = LocalPlayerSkills.Where(x => x.Shortcut.IsShortCutPressed() /*&& Skills.IndexOf(x) > 0*/);
+        if (pressedSkills == null)
         {
             LogMessage("FoeSkill is null. Exiting Tick.");
             return;
@@ -523,7 +521,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             {
                 return;
             }
-            foreach (var foe in foeSkill)
+            foreach (var foe in pressedSkills)
             {
                 LeaderInput leaderInput = new()
                 {
