@@ -20,7 +20,9 @@ namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
-    public List<PlayerSkill> LocalPlayerSkills = [];
+    public List<PlayerSkill> LocalPlayerSkills { get; set; } = [];
+
+
     bool IsTaskRunning = false;
     public Leader Leader { get; private set; }
     public PlayerSkill MoveSkill => LocalPlayerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
@@ -150,6 +152,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             return;
         }
        
+        if(Leader != null && Leader.Entity != null && Leader.Entity.DistancePlayer < Settings.Party.LeaderMaxDistance && GameController.Player.Buffs.Any(b => b.Name.Contains("grace_period")))
+        {
+            LogMessage(" is in grace period, skipping behaviors for now.", 0.5f);
+            return;
+        }
 
 
         // Cas 1 : On est en hideout, et le leader est en map
@@ -473,24 +480,21 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LastTargetedPortalOrTransition = null
         };
     }
-    private void SetLeaderSkillAndShortCuts()
-    {
-  
-
-
-        var sc3 = Shortcuts;
-        var sc = sc3[0].ToString().Contains("MoveUp") ? sc3.Skip(9).Take(13).ToList() : sc3.Skip(7).Take(13).ToList();//sc2.Skip(5).Take(13).ToList();
-        Leader.Skills.Clear();
-        for (int i = 0; i < sc.Count; i++)
-        {
-            var skillBarSkill = GameController.IngameState.IngameUi.SkillBar.Skills[i];
-            Leader.Skills.Add(new PlayerSkill
-            {
-                Shortcut = sc[i],
-                Skill = skillBarSkill
-            });
-        }
-    }
+    //private void SetLeaderSkillAndShortCuts()
+    //{
+    //    var sc3 = Shortcuts;
+    //    var sc = sc3[0].ToString().Contains("MoveUp") ? sc3.Skip(9).Take(13).ToList() : sc3.Skip(7).Take(13).ToList();//sc2.Skip(5).Take(13).ToList();
+    //    Leader.Skills.Clear();
+    //    for (int i = 0; i < sc.Count; i++)
+    //    {
+    //        var skillBarSkill = GameController.IngameState.IngameUi.SkillBar.Skills[i];
+    //        Leader.Skills.Add(new PlayerSkill
+    //        {
+    //            Shortcut = sc[i],
+    //            Skill = skillBarSkill
+    //        });
+    //    }
+    //}
     private void ServerTickForLeaderBroadcast()
     {
         if (GameController.IsLoading) return;
@@ -508,8 +512,15 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
        
         var actor = GameController.Player.GetComponent<Actor>();
-
-      
+        var skillbar = GameController.IngameState.IngameUi.SkillBar;
+        LocalPlayerSkills.Clear();
+        LocalPlayerSkills.AddRange(actor.ActorSkills
+            .Where(x => x.IsOnSkillBar && x.SkillSlotIndex >= 0 && x.SkillSlotIndex < 13)
+            .Select(x => new PlayerSkill
+            {
+                Shortcut = Shortcuts.Skip(7).Take(13).ToList()[x.SkillSlotIndex],
+                Skill = skillbar.Skills[x.SkillSlotIndex]
+            }));
         var pressedSkills = LocalPlayerSkills.Where(x => x.Shortcut.IsShortCutPressed() /*&& Skills.IndexOf(x) > 0*/);
         if (pressedSkills == null)
         {
@@ -523,6 +534,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 return;
             }
 
+
             LastLeaderInput = DateTime.Now; // Move this here, before processing multiple skills
             var mouseCoords = Input.MousePositionNum;
             var currentSkill = GameController.Player.GetComponent<Actor>().CurrentAction?.Skill;
@@ -531,12 +543,15 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             {
                 return;
             }
+
+            LogMessage($"Broadcasting {pressedSkills.Count()} pressed skills to followers.", 0.5f);
+
             foreach (var foe in pressedSkills)
             {
                 LeaderInput leaderInput = new()
                 {
                     LeaderName = GameController.Player.GetComponent<Player>().PlayerName,
-                    RawInput = Leader.Skills.IndexOf(foe).ToString(),
+                    RawInput = foe.Skill.Skill.SkillSlotIndex.ToString(),
                     MouseCoords = new(mouseCoords.X / window.Width, mouseCoords.Y / window.Height),
                 };
                 PartyServer.BroadcastLeaderInput(leaderInput);
