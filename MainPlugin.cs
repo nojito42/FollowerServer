@@ -140,7 +140,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         LogMessage("FollowerBehavior Tick", 0.5f);
 
         SetLocalSkillsAndShortCuts();
-        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground())
+        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.)
         {
             LogMessage("Game not in focus or menu opened, skipping.", 0.5f);
             return;
@@ -152,7 +152,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             return;
         }
        
-        if(Leader != null && Leader.Entity != null && Leader.Entity.DistancePlayer < Settings.Party.LeaderMaxDistance && GameController.Player.Buffs.Any(b => b.Name.Contains("grace_period")))
+        if( Leader.Entity.DistancePlayer < Settings.Party.LeaderMaxDistance && GameController.Player.Buffs.Any(b => b.Name.Equals("grace_period")))
         {
             LogMessage(" is in grace period, skipping behaviors for now.", 0.5f);
             return;
