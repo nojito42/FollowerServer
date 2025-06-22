@@ -252,6 +252,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     Input.Click(MouseButtons.Left);
                     MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
                     maxtattempts--;
+                    LogError($"Attempting to follow portal: {portal.RenderName} at {screenPos}, attempts left: {maxtattempts}", 100);
                     Thread.Sleep(100);
                 }
             } while ((MyTarget == null || MyTarget != portal) && maxtattempts > 0);
