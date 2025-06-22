@@ -163,14 +163,14 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             return;
         Leader = new Leader
         {
-            LeaderName = leaderElement[0].Text,
+            Name = leaderElement[0].Text,
             Element = leaderElement,
             LastTargetedPortalOrTransition = null
         };
         // Cas 1 : On est en hideout, et le leader est en map
-        if (GameController.Area.CurrentArea.IsHideout && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name)
+        if (GameController.Area.CurrentArea.IsHideout && Leader.CurrentArea != GameController.Area.CurrentArea.Name)
         {
-            LogMessage($"Leader {Leader.LeaderName} is in a different map.");
+            LogMessage($"Leader {Leader.Name} is in a different map.");
 
             if (Settings.Party.Follow)
             {
@@ -179,7 +179,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     .OrderBy(e => e.DistancePlayer)
                     .ToList();
 
-                var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == Leader.LeaderCurrentArea);
+                var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == Leader.CurrentArea);
 
                 if (firstTP != null)
                 {
@@ -212,7 +212,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         //cas 5 : Leader n'est pas du tout sur la même map
-        if (Leader != null && Leader.Entity == null && Leader.LeaderCurrentArea != GameController.Area.CurrentArea.Name && GameController.Area.CurrentArea.IsHideout == false)
+        if (Leader != null && Leader.Entity == null && Leader.CurrentArea != GameController.Area.CurrentArea.Name && GameController.Area.CurrentArea.IsHideout == false)
         {
             var leaderTpElement = Leader.Element.Children?[3];
             if (leaderTpElement?.IsActive == true)
@@ -238,7 +238,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
         // Cas 3 : Le leader vient de prendre un portail et on le suit
-        if (Leader != null && Leader.Entity != null && Leader.LastTargetedPortalOrTransition != null && Leader.LeaderCurrentArea == GameController.Area.CurrentArea.Name)
+        if (Leader != null && Leader.Entity != null && Leader.LastTargetedPortalOrTransition != null && Leader.CurrentArea == GameController.Area.CurrentArea.Name)
         {
             Entity MyTarget = null;
             int maxtattempts = 10;
