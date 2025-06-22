@@ -235,42 +235,46 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
         // Cas 3 : Le leader vient de prendre un portail et on le suit
-        if (Leader != null && Leader.Entity != null && Leader.LastTargetedPortalOrTransition != null && Leader.CurrentArea == GameController.Area.CurrentArea.Name)
+        if (Leader != null && Leader.Entity != null && Leader.LastTargetedPortalOrTransition != null &&
+            Leader.CurrentArea == GameController.Area.CurrentArea.Name)
         {
             Entity MyTarget = null;
             int maxtattempts = 50;
             var portal = Leader.LastTargetedPortalOrTransition;
+
             do
             {
                 var portalPosition = portal.BoundsCenterPosNum;
                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
 
+                // Check visible + click
                 if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
                 {
                     Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                     Input.SetCursorPos(screenPos);
                     Input.Click(MouseButtons.Left);
-                    MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
-                    Thread.Sleep(20);
-
-                    // Vérifier le succès
-                    if (MyTarget != null && MyTarget == portal && (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading))
-                    {
-                        LogMessage($"Successfully followed portal: {portal.RenderName} at {screenPos}", 100);
-                        Leader.LastTargetedPortalOrTransition = null; // Reset
-                        break;
-                    }
-
-                    LogError($"attempts left: {maxtattempts}");
+                    Thread.Sleep(100); // plus réaliste que 20ms
                 }
                 else
                 {
                     LogError($"Portal not visible on screen: {portal.RenderName}, attempts left: {maxtattempts}", 100);
                 }
 
-                maxtattempts--; // Toujours décrémenter
+                MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
-            } while ((MyTarget == null || MyTarget != portal) && maxtattempts > 0);
+                // Condition de sortie plus fiable
+                bool isSuccess = (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading);
+                if (isSuccess)
+                {
+                    LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
+                    Leader.LastTargetedPortalOrTransition = null;
+                    return;
+                }
+
+                LogError($"Attempt failed. Attempts left: {maxtattempts}");
+                maxtattempts--;
+
+            } while (maxtattempts > 0);
 
             // Si on arrive ici, échec
             Leader.LastTargetedPortalOrTransition = null;
