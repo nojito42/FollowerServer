@@ -251,14 +251,14 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     Input.SetCursorPos(screenPos);
                     Input.Click(MouseButtons.Left);
                     MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
-                    Thread.Sleep(100);
+                    Thread.Sleep(20);
 
                     // Vérifier le succès
                     if (MyTarget != null && MyTarget == portal && (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading))
                     {
                         LogMessage($"Successfully followed portal: {portal.RenderName} at {screenPos}", 100);
                         Leader.LastTargetedPortalOrTransition = null; // Reset
-                        return;
+                        break;
                     }
 
                     LogError($"Attempting to follow portal: {portal.RenderName} at {screenPos}, attempts left: {maxtattempts}", 100);
