@@ -287,13 +287,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
-                    if (GameController.Player.Buffs.Any(b => b.Name.Contains(crySkill.Name)))
+                    if (GameController.Player.Buffs.Any(b => b.Name.Contains(crySkill.InternalName)))
                     {
-                        LogError($"Cry Skill {crySkill.Name} is already active, skipping.");
+                        LogError($"Cry Skill {crySkill.InternalName} is already active, skipping.");
                         continue;
                     }
                     else if(GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost){
-                        LogError($"Not enough mana to use Cry Skill: {crySkill.Name}, skipping.");
+                        LogError($"Not enough mana to use Cry Skill: {crySkill.InternalName}, skipping.");
                         continue;
                     }
                     this.TryDoAction(() =>
