@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Threading;
 using System.Windows.Forms;
 using FollowerPlugin;
+using ExileCore.PoEMemory.Components;
 
 namespace FollowerServer;
 
@@ -74,5 +75,10 @@ public static class FollowerPluginExtensions
         lastActionTime = DateTime.Now;
         act();
         return true;
+    }
+
+    public static List<Buff> GetBuffs(this MainPlugin p)
+    {
+        return p.GameController.Player.Buffs;
     }
 }

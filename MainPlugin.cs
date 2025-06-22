@@ -255,7 +255,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     LogError($"Attempting to follow portal: {portal.RenderName} at {screenPos}, attempts left: {maxtattempts}", 100);
                     Thread.Sleep(100);
                 }
-            } while ((MyTarget == null || MyTarget != portal) && maxtattempts > 0);
+            } while ((MyTarget == null || MyTarget != portal) && (maxtattempts > 0 || this.GetBuffs().Any(b=>b.Name.Equals("grace_period"))));
             return;
         }
 
@@ -302,7 +302,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
-                    if (GameController.Player.Buffs.Any(b => b.Name.Contains(crySkill.InternalName)))
+                    if (this.GetBuffs().Any(b => b.Name.Contains(crySkill.InternalName)))
                     {
                         LogError($"Cry Skill {crySkill.InternalName} is already active, skipping.");
                         continue;
