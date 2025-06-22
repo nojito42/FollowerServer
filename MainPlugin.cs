@@ -256,6 +256,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         castWithTarget(portal, 0x400);
                     });
                     Thread.Sleep(100);
+                    LogMessage($"magicinput2 casted skill with target: {portal.RenderName}", 1);  
                     break;
                 }
 
