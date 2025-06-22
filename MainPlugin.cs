@@ -17,7 +17,7 @@ using ExileCore.Shared.Interfaces;
 using System.Threading.Tasks;
 namespace FollowerServer;
 
-public class FollowerPlugin : BaseSettingsPlugin<FollowerPluginSettings>
+public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
     public List<PlayerSkill> FollowerSkills = [];
     public Leader Leader { get; private set; }

@@ -13,7 +13,7 @@ public class PartyServer
 {
     private TcpListener _server;
     private bool _isRunning;
-    private FollowerPlugin _plugin;
+    private MainPlugin _plugin;
     public bool IsRunning => _isRunning;
 
     public readonly string ServerIP;
@@ -24,7 +24,7 @@ public class PartyServer
 
     private List<TcpClient> _clients = new List<TcpClient>();  // Liste des clients connectés
 
-    public PartyServer(FollowerPlugin plugin)
+    public PartyServer(MainPlugin plugin)
     {
         _plugin = plugin;
         ServerIP = GetLocalIPAddress();

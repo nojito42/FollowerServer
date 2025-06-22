@@ -66,7 +66,7 @@ public static class FollowerPluginExtensions
 {
     public static DateTime lastActionTime = DateTime.MinValue;
     public static int ActionCooldownMS = 50;
-    public static bool TryDoAction(this FollowerPlugin p, Action act)
+    public static bool TryDoAction(this MainPlugin p, Action act)
     {
         if ((DateTime.Now - lastActionTime).TotalMilliseconds < ActionCooldownMS)
             return false;

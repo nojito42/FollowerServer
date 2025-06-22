@@ -17,11 +17,11 @@ using GameOffsets.Native;
 namespace FollowerServer;
 
 
-public class PartyClient(FollowerPlugin plugin)
+public class PartyClient(MainPlugin plugin)
 {
     private TcpClient _client;
     private NetworkStream _stream;
-    private readonly FollowerPlugin _plugin = plugin;
+    private readonly MainPlugin _plugin = plugin;
     private string ServerIp => _plugin.Settings.Party.ServerIP; // Adresse IP du serveur (leader)
     public bool IsConnected => _client != null && _client.Connected;
 
