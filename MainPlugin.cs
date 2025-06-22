@@ -256,14 +256,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         castWithTarget(portal, 0x400);
                     });
                     Thread.Sleep(100);
-                    if (GameController.IsLoading || this.GetBuffs().Any(b => b.Name.Equals("grace_period")))
-                    {
-                        int attemptsUsed = 50 - maxtattempts;
-                        LogMessage($"Successfully followed portal: {portal.RenderName} after attempts: {attemptsUsed}", 100);
-                        Leader.LastTargetedPortalOrTransition = null;
-                        Thread.Sleep(200); // attendre un peu pour laisser le temps de charger
-                        break;
-                    }
+
+                    break;
                 }
 
 
