@@ -115,6 +115,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         LogMessage("FollowerPlugin Tick", 0.5f);
         SetLeader();
+     
         if (Settings.Server.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
@@ -228,7 +229,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             var leaderTpElement = Leader.Element.Children?[3];
 
-            if (Settings.Party.UseInputManager && leaderTpElement != null)
+            if (false)//todo find it or ask instant sc to check it jajaajajaaj
             {
                 this.TryDoAction(() =>
                 {
@@ -545,7 +546,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public void SetLeader()
     {
         var pt = GameController.Party();
-        if (pt == null || Settings.Party.LeaderSelect.Value == null)
+        if (pt == null)
             return;
         Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
         var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
