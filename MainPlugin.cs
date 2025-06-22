@@ -138,6 +138,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     private void FollowerBehavior()
     {
         LogMessage("FollowerBehavior Tick", 0.5f);
+        if(Leader == null)
+        {
+            LogMessage("Leader is not set, skipping follower behavior.", 0.5f);
+            return;
+        }
 
         SetLocalSkillsAndShortCuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
@@ -159,8 +164,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
 
-        // Cas 1 : On est en hideout, et le leader est en map
-        if (GameController.Area.CurrentArea.IsHideout && Leader.CurrentArea != GameController.Area.CurrentArea.Name)
+        // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
+        if (GameController.Area.CurrentArea.IsHideout && (Leader.CurrentArea != GameController.Area.CurrentArea.Name || Leader.Entity == null))
         {
             LogMessage($"Leader {Leader.Name} is in a different map.");
 
@@ -233,10 +238,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (Leader != null && Leader.Entity != null && Leader.LastTargetedPortalOrTransition != null && Leader.CurrentArea == GameController.Area.CurrentArea.Name)
         {
             Entity MyTarget = null;
-            int maxtattempts = 10;
+            int maxtattempts = 50;
+            var portal = Leader.LastTargetedPortalOrTransition;
             do
             {
-                var portalPosition = Leader.LastTargetedPortalOrTransition.BoundsCenterPosNum;
+                
+                var portalPosition = portal.BoundsCenterPosNum;
                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
                 if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
                 {
@@ -247,7 +254,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     maxtattempts--;
                     Thread.Sleep(100);
                 }
-            } while ((MyTarget == null || MyTarget != Leader.LastTargetedPortalOrTransition) && maxtattempts > 0);
+            } while ((MyTarget == null || MyTarget != portal) && maxtattempts > 0);
             return;
         }
 
