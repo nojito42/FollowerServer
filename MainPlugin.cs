@@ -248,7 +248,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
 
                 // Check visible + click
-                if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
+                if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
                 {
                     Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                     Input.SetCursorPos(screenPos);
