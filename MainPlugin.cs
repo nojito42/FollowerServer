@@ -261,7 +261,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         break;
                     }
 
-                    LogError($"Attempting to follow portal: {portal.RenderName} at {screenPos}, attempts left: {maxtattempts}", 100);
+                    LogError($"attempts left: {maxtattempts}");
                 }
                 else
                 {
@@ -274,7 +274,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
             // Si on arrive ici, échec
             Leader.LastTargetedPortalOrTransition = null;
-            LogError("Failed to follow portal after all attempts", 100);
+            LogError("Failed to follow portal after all attempts");
             return;
         }
 
