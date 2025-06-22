@@ -253,7 +253,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                     Input.SetCursorPos(screenPos);
                     Input.Click(MouseButtons.Left);
-                    Thread.Sleep(100); // plus réaliste que 20ms
+                    Thread.Sleep(800); // plus réaliste que 20ms
                 }
                 else
                 {
@@ -268,6 +268,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
                     Leader.LastTargetedPortalOrTransition = null;
+                    Thread.Sleep(800); // attendre un peu pour laisser le temps de charger
                     return;
                 }
 
