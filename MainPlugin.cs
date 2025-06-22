@@ -157,7 +157,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             return;
         }
        
-        if(Leader.Entity != null && (Leader.Entity.DistancePlayer >  Settings.Party.LeaderMaxDistance && GameController.Player.Buffs.Any(b => b.Name.Equals("grace_period"))))
+        if(Leader.Entity != null && (Leader.Entity.DistancePlayer <  Settings.Party.LeaderMaxDistance && GameController.Player.Buffs.Any(b => b.Name.Equals("grace_period"))))
         {
             LogMessage(" is in grace period, skipping behaviors for now.");
             return;
