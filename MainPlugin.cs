@@ -27,7 +27,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     float lastMoveDelayMS = 20f; //ms
     public IList<Shortcut> shortcuts;
 
-    public List<PlayerSkill> LeaderSkills { get; set; } = [];
     public PartyServer PartyServer { get; private set; }
     public PartyClient PartyClient { get; private set; }
     public DateTime LastLeaderInput { get; set; } = DateTime.Now;
@@ -42,8 +41,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogError("No shortcuts found. Please check your game settings.", 100);
             return false;
         }
-       
-        Settings.Party.ConnectClient.OnValueChanged += (v,a) =>
+
+        Settings.Party.ConnectClient.OnValueChanged += (v, a) =>
         {
             if (a)
             {
@@ -68,14 +67,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             ToggleLeaderServer();
         }
-        
-            ConnectTask();
 
-        
+        ConnectTask();
+
+
 
         return true;
     }
-
     private void ConnectTask()
     {
         if (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
@@ -103,7 +101,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         });
         }
     }
-
     private void ConnectToPartyServer()
     {
         if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
@@ -115,7 +112,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override Job Tick()
     {
-        
+
         LogMessage("FollowerPlugin Tick", 0.5f);
         var pt = GameController.Party();
 
@@ -141,8 +138,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     private void FollowerBehavior()
     {
         LogMessage("FollowerBehavior Tick", 0.5f);
-        var pt = GameController.Party();
-        Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
+
         SetFollowerSkillsAndShortcuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground())
         {
@@ -155,18 +151,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogMessage("Flagged panels found, skipping follower behavior.", 0.5f);
             return;
         }
-        if (pt == null || Settings.Party.LeaderSelect.Value == null)
-            return;
+       
 
-        var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
-        if (leaderElement == null)
-            return;
-        Leader = new Leader
-        {
-            Name = leaderElement[0].Text,
-            Element = leaderElement,
-            LastTargetedPortalOrTransition = null
-        };
+
         // Cas 1 : On est en hideout, et le leader est en map
         if (GameController.Area.CurrentArea.IsHideout && Leader.CurrentArea != GameController.Area.CurrentArea.Name)
         {
@@ -264,7 +251,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         ManageLeaderOnSameMap();
 
 
-    }  
+    }
     private void ManageLeaderOnSameMap()
     {
         var leaderEntity = Leader.Entity;
@@ -445,7 +432,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (Settings.Server.ToggleLeaderServer.Value)
         {
             PartyServer ??= new PartyServer(this);
-            
+
             if (Settings.Server.ToggleLeaderServer.Value && !PartyServer.IsRunning)
             {
                 LogError("Starting server...");
@@ -463,13 +450,29 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void SetLeaderSkillAndShortCuts()
     {
+        var pt = GameController.Party();
+        if (pt == null || Settings.Party.LeaderSelect.Value == null)
+            return;
+        Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
+        var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
+        if (leaderElement == null)
+            return;
+   
+        Leader = new Leader
+        {
+            Name = leaderElement[0].Text,
+            Element = leaderElement,
+            LastTargetedPortalOrTransition = null
+        };
+
+
         var sc3 = shortcuts;
         var sc = sc3[0].ToString().Contains("MoveUp") ? sc3.Skip(9).Take(13).ToList() : sc3.Skip(7).Take(13).ToList();//sc2.Skip(5).Take(13).ToList();
-        LeaderSkills.Clear();
+        Leader.Skills.Clear();
         for (int i = 0; i < sc.Count; i++)
         {
             var skillBarSkill = GameController.IngameState.IngameUi.SkillBar.Skills[i];
-            LeaderSkills.Add(new PlayerSkill
+            Leader.Skills.Add(new PlayerSkill
             {
                 Shortcut = sc[i],
                 Skill = skillBarSkill
@@ -494,12 +497,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         SetLeaderSkillAndShortCuts();
         var actor = GameController.Player.GetComponent<Actor>();
 
-        if (LeaderSkills == null)
+        if (Leader.Skills == null)
         {
             LogMessage("LeaderSkills is null. Exiting Tick.");
             return;
         }
-        var foeSkill = LeaderSkills.Where(x => x.Shortcut.IsShortCutPressed() /*&& LeaderSkills.IndexOf(x) > 0*/);
+        var foeSkill = Leader.Skills.Where(x => x.Shortcut.IsShortCutPressed() /*&& Skills.IndexOf(x) > 0*/);
         if (foeSkill == null)
         {
             LogMessage("FoeSkill is null. Exiting Tick.");
@@ -525,7 +528,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 LeaderInput leaderInput = new()
                 {
                     LeaderName = GameController.Player.GetComponent<Player>().PlayerName,
-                    RawInput = LeaderSkills.IndexOf(foe).ToString(),
+                    RawInput = Leader.Skills.IndexOf(foe).ToString(),
                     MouseCoords = new(mouseCoords.X / window.Width, mouseCoords.Y / window.Height),
                 };
                 PartyServer.BroadcastLeaderInput(leaderInput);
@@ -548,7 +551,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (Settings.Server.DrawFollowersCircle)
             {
                 var pt = GameController.IngameState.IngameUi.PartyElement.PlayerElements.ToList();
-                if(pt == null || pt.Count == 0)
+                if (pt == null || pt.Count == 0)
                 {
                     LogMessage("No party members found to draw circles.", 100);
                     return;
@@ -560,7 +563,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     SharpDX.Color[] colors = { SharpDX.Color.Red, SharpDX.Color.Green, SharpDX.Color.Blue, SharpDX.Color.Yellow, SharpDX.Color.Purple };
                     var e = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.Player]
                         .FirstOrDefault(x => x.GetComponent<Player>()?.PlayerName == pm.PlayerName);
-                    if(e == null)
+                    if (e == null)
                     {
                         LogMessage($"Entity for player {pm.PlayerName} not found.", 100);
                         return;
@@ -568,7 +571,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     var gp = GameController.IngameState.Data.GetWorldScreenPosition(e.PosNum);
                     if (GameController.Window.GetWindowRectangleTimeCache.Contains(gp))
                     {
-                        Graphics.DrawCircleInWorld(e.PosNum, Settings.Server.CircleRadius, colors[i] with { A = (byte)Settings.Server.CircleAlpha}, Settings.Server.CircleThickness);
+                        Graphics.DrawCircleInWorld(e.PosNum, Settings.Server.CircleRadius, colors[i] with { A = (byte)Settings.Server.CircleAlpha }, Settings.Server.CircleThickness);
                         i++;
                     }
                 });
@@ -578,13 +581,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     #region DisposeClose
     public override void Dispose()
     {
-       DisconnectWithMessage("Disposing FollowerPlugin.");
+        DisconnectWithMessage("Disposing FollowerPlugin.");
         base.Dispose();
     }
     public override void OnClose()
     {
-       DisconnectWithMessage("Closing FollowerPlugin.");
-        base.OnClose(); 
+        DisconnectWithMessage("Closing FollowerPlugin.");
+        base.OnClose();
     }
     public override void OnPluginDestroyForHotReload()
     {
@@ -606,4 +609,3 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     #endregion
 }
-
