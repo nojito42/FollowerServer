@@ -227,7 +227,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             var leaderTpElement = Leader.Element.Children?[3];
 
-            if (Settings.Party.UseInputManager)
+            if (Settings.Party.UseInputManager && leaderTpElement?.Entity != null)
             {
                 this.TryDoAction(() =>
                 {
