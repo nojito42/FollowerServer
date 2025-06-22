@@ -233,8 +233,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 this.TryDoAction(() =>
                 {
                     var castWithTarget = GameController.PluginBridge
-                        .GetMethod<Action<Element, uint>>("MagicInput2.GemLevelUp");
-                    castWithTarget(leaderTpElement, 0x400);
+                        .GetMethod<Action<Element, Vector2i>>("MagicInput2.UiClick");
+                    castWithTarget(leaderTpElement, leaderTpElement.GetClientRect().Center.ToVector2Num().RoundToVector2I());
                 });
             }
             else
