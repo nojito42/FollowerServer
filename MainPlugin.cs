@@ -140,7 +140,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         LogMessage("FollowerBehavior Tick", 0.5f);
 
         SetLocalSkillsAndShortCuts();
-        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.)
+        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
         {
             LogMessage("Game not in focus or menu opened, skipping.", 0.5f);
             return;
