@@ -294,6 +294,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     }
                     else if(GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost){
                         LogError($"Not enough mana to use Cry Skill: {crySkill.Name}, skipping.");
+                        continue;
                     }
                     this.TryDoAction(() =>
                     {
