@@ -263,7 +263,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             
                 LogError($"Attempting to follow portal: {portal.RenderName} at {screenPos}, attempts left: {maxtattempts}", 100);
 
-            } while ((MyTarget == null || MyTarget != portal) && (maxtattempts > 0 || )));
+            } while ((MyTarget == null || MyTarget != portal) && (maxtattempts > 0 ));
             return;
         }
 
