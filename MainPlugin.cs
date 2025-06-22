@@ -15,6 +15,7 @@ using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
 using ExileCore.Shared.Interfaces;
 using System.Threading.Tasks;
+using System.Diagnostics.Eventing.Reader;
 namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -286,10 +287,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     .ToList();
                 foreach (var crySkill in crySkills)
                 {
-                    if (GameController.Player.Buffs.Any(b => b.DisplayName.Contains(crySkill.Name)) || GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost)
+                    if (GameController.Player.Buffs.Any(b => b.Name.Contains(crySkill.Name)))
                     {
                         LogError($"Cry Skill {crySkill.Name} is already active, skipping.");
                         continue;
+                    }
+                    else if(GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost){
+                        LogError($"Not enough mana to use Cry Skill: {crySkill.Name}, skipping.");
                     }
                     this.TryDoAction(() =>
                     {
