@@ -242,28 +242,39 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             var portal = Leader.LastTargetedPortalOrTransition;
             do
             {
-                
                 var portalPosition = portal.BoundsCenterPosNum;
                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
+
                 if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
                 {
                     Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                     Input.SetCursorPos(screenPos);
                     Input.Click(MouseButtons.Left);
                     MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
-                    maxtattempts--;
                     Thread.Sleep(100);
-                    if(MyTarget !=null && MyTarget == portal && (this.GetBuffs().Any(b => b.Name.Equals("grace_period") || GameController.IsLoading)))
+
+                    // Vérifier le succès
+                    if (MyTarget != null && MyTarget == portal && (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading))
                     {
                         LogMessage($"Successfully followed portal: {portal.RenderName} at {screenPos}", 100);
+                        Leader.LastTargetedPortalOrTransition = null; // Reset
                         return;
                     }
+
+                    LogError($"Attempting to follow portal: {portal.RenderName} at {screenPos}, attempts left: {maxtattempts}", 100);
+                }
+                else
+                {
+                    LogError($"Portal not visible on screen: {portal.RenderName}, attempts left: {maxtattempts}", 100);
                 }
 
-            
-                LogError($"Attempting to follow portal: {portal.RenderName} at {screenPos}, attempts left: {maxtattempts}", 100);
+                maxtattempts--; // Toujours décrémenter
 
-            } while ((MyTarget == null || MyTarget != portal) && (maxtattempts > 0 ));
+            } while ((MyTarget == null || MyTarget != portal) && maxtattempts > 0);
+
+            // Si on arrive ici, échec
+            Leader.LastTargetedPortalOrTransition = null;
+            LogError("Failed to follow portal after all attempts", 100);
             return;
         }
 
