@@ -247,7 +247,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var portalPosition = portal.BoundsCenterPosNum;
                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
 
-                if(Settings.Party.UseInputManager)
+                if (Settings.Party.UseInputManager)
                 {
                     this.TryDoAction(() =>
                     {
@@ -255,36 +255,43 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
                         castWithTarget(portal, 0x400);
                     });
+                    Thread.Sleep(100);
+                    break;
                 }
-                
 
-                // Check visible + click
-                else if (!Settings.Party.UseInputManager &&screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
-                {
-                    Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
-                    Input.SetCursorPos(screenPos);
-                    Input.Click(MouseButtons.Left);
-                    Thread.Sleep(800); // plus réaliste que 20ms
-                }
+
                 else
                 {
-                    LogError($"Portal not visible on screen: {portal.RenderName}, attempts left: {maxtattempts}", 100);
+
+
+                    // Check visible + click
+                    if (!Settings.Party.UseInputManager && screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
+                    {
+                        Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
+                        Input.SetCursorPos(screenPos);
+                        Input.Click(MouseButtons.Left);
+                        Thread.Sleep(800); // plus réaliste que 20ms
+                    }
+                    else
+                    {
+                        LogError($"Portal not visible on screen: {portal.RenderName}, attempts left: {maxtattempts}", 100);
+                    }
+
+                    MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
+
+                    // Condition de sortie plus fiable
+                    bool isSuccess = (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading);
+                    if (isSuccess)
+                    {
+                        LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
+                        Leader.LastTargetedPortalOrTransition = null;
+                        Thread.Sleep(800); // attendre un peu pour laisser le temps de charger
+                        return;
+                    }
+
+                    LogError($"Attempt failed. Attempts left: {maxtattempts}");
+                    maxtattempts--;
                 }
-
-                MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
-
-                // Condition de sortie plus fiable
-                bool isSuccess = (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading);
-                if (isSuccess)
-                {
-                    LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
-                    Leader.LastTargetedPortalOrTransition = null;
-                    Thread.Sleep(800); // attendre un peu pour laisser le temps de charger
-                    return;
-                }
-
-                LogError($"Attempt failed. Attempts left: {maxtattempts}");
-                maxtattempts--;
 
             } while (maxtattempts > 0);
 
