@@ -225,18 +225,19 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         //cas 5 : Leader n'est pas du tout sur la même map
         if (Leader != null && (Leader.Entity == null || Leader.CurrentArea != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
         {
-            if(Settings.Party.UseInputManager)
+            var leaderTpElement = Leader.Element.Children?[3];
+
+            if (Settings.Party.UseInputManager)
             {
                 this.TryDoAction(() =>
                 {
                     var castWithTarget = GameController.PluginBridge
                         .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
-                    castWithTarget(Leader.Entity, 0x400);
+                    castWithTarget(leaderTpElement.Entity, 0x400);
                 });
             }
             else
             { 
-            var leaderTpElement = Leader.Element.Children?[3];
             if (leaderTpElement?.IsActive == true)
             {
                 Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
