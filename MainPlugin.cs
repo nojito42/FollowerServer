@@ -140,26 +140,26 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         LogMessage("FollowerBehavior Tick", 0.5f);
         if(Leader == null)
         {
-            LogMessage("Leader is not set, skipping follower behavior.", 0.5f);
+            LogMessage("Leader is not set, skipping follower behavior.");
             return;
         }
 
         SetLocalSkillsAndShortCuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
         {
-            LogMessage("Game not in focus or menu opened, skipping.", 0.5f);
+            LogMessage("Game not in focus or menu opened, skipping.");
             return;
         }
 
         if (GameController.CloseWindowIfOpen())
         {
-            LogMessage("Flagged panels found, skipping follower behavior.", 0.5f);
+            LogMessage("Flagged panels found, skipping follower behavior.");
             return;
         }
        
-        if(Leader.Entity != null && (Leader.Entity.DistancePlayer < Settings.Party.LeaderMaxDistance || GameController.Player.Buffs.Any(b => b.Name.Equals("grace_period"))))
+        if(Leader.Entity != null && (Leader.Entity.DistancePlayer >  Settings.Party.LeaderMaxDistance || GameController.Player.Buffs.Any(b => b.Name.Equals("grace_period"))))
         {
-            LogMessage(" is in grace period, skipping behaviors for now.", 0.5f);
+            LogMessage(" is in grace period, skipping behaviors for now.");
             return;
         }
 
