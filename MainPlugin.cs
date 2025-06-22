@@ -181,15 +181,29 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 if (firstTP != null)
                 {
                     LogMessage($"Found town portal to follow: {firstTP.RenderName}", 0.5f);
-                    var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(firstTP.BoundsCenterPosNum);
-                    if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
+
+                    if(Settings.Party.UseInputManager)
                     {
-                        Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
-                        Input.SetCursorPos(screenPos);
-                        Input.Click(MouseButtons.Left);
-                        Thread.Sleep(100);
-                        return;
+                        this.TryDoAction(() =>
+                        {
+                            var castWithTarget = GameController.PluginBridge
+                                .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
+                            castWithTarget(firstTP, 0x400);
+                        });
                     }
+                    else
+                    {
+                        var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(firstTP.BoundsCenterPosNum);
+                        if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
+                        {
+                            Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
+                            Input.SetCursorPos(screenPos);
+                            Input.Click(MouseButtons.Left);
+                            Thread.Sleep(100);
+                            return;
+                        }
+                    }
+                  
                 }
                 else
                 {
@@ -209,7 +223,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         //cas 5 : Leader n'est pas du tout sur la même map
-        if (Leader != null && Leader.Entity == null && Leader.CurrentArea != GameController.Area.CurrentArea.Name && GameController.Area.CurrentArea.IsHideout == false)
+        if (Leader != null && (Leader.Entity == null || Leader.CurrentArea != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
         {
             var leaderTpElement = Leader.Element.Children?[3];
             if (leaderTpElement?.IsActive == true)
