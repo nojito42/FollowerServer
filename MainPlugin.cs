@@ -16,6 +16,7 @@ using ExileCore.PoEMemory.MemoryObjects;
 using ExileCore.Shared.Interfaces;
 using System.Threading.Tasks;
 using System.Diagnostics.Eventing.Reader;
+using ExileCore.PoEMemory;
 namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -232,8 +233,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 this.TryDoAction(() =>
                 {
                     var castWithTarget = GameController.PluginBridge
-                        .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
-                    castWithTarget(leaderTpElement.Entity, 0x400);
+                        .GetMethod<Action<Element, uint>>("MagicInput2.GemLevelUp");
+                    castWithTarget(leaderTpElement, 0x400);
                 });
             }
             else
