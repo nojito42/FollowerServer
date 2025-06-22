@@ -442,7 +442,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         else
         {
-            PartyServer.Stop();
+            if (PartyServer != null && PartyServer.IsRunning)
+            {
+                LogError("Stopping server...");
+                PartyServer.Stop();
+            }
+            
         }
     }
 
