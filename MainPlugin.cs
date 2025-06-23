@@ -97,7 +97,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         LogError("Starting ConnectTask...", 0.5f);
 
-        while (Settings.Party.ConnectClient && (PartyClient == null))
+        while (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false=))
 
         {
             if (GameController.Party().ChildCount <= 0)
