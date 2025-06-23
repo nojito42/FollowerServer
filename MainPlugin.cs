@@ -331,9 +331,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     //LogMessage($"Attempting to follow portal: {portal.RenderName}, attempts left: {maxtattempts}");
 
-                    
+
                     // Check visible + click
-                    if (/*/*!Settings.Party.UseInputManager & screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal*/ true)
+                    bool isSuccess = (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading);
+                    if (/*/*!Settings.Party.UseInputManager & screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal*/ !isSuccess)
                     {
                         var portalPos = GameController.IngameState.Data.GetWorldScreenPosition(portal.BoundsCenterPosNum);
 
@@ -350,13 +351,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
                     // Condition de sortie plus fiable
-                    bool isSuccess = (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading);
+                   
                     if (isSuccess)
                     {
                         LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
                         PartyLeader.LastTargetedPortalOrTransition = null;
                         Thread.Sleep(800); // attendre un peu pour laisser le temps de charger
-                        return;
+                        break;
                     }
 
                     LogError($"Attempt failed. Attempts left: {maxtattempts}");
