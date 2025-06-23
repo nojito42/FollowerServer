@@ -332,7 +332,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     LogMessage($"Attempting to follow portal: {portal.RenderName}, attempts left: {maxtattempts}");
 
                     // Check visible + click
-                    if (!Settings.Party.UseInputManager && screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
+                    if (/*!Settings.Party.UseInputManager */&& screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
                     {
                         Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                         Input.Click(MouseButtons.Left);
