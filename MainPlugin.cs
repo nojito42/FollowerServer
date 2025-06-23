@@ -265,7 +265,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         //cas 2 : Leader n'est pas du tout sur la même map
-
+        return;
         if (/*PartyLeader != null && */(PartyLeader.Entity == null || !PartyLeader.IsSameZone == false) && GameController.Area.CurrentArea.IsHideout == false)
         {
             LogMessage($"cas 2 : Leader n'est pas du tout sur la même map, on va essayer de le suivre");
