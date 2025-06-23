@@ -271,7 +271,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogMessage($"cas 2 : Leader n'est pas du tout sur la même map, on va essayer de le suivre");
 
             var ui = GameController.IngameState.IngameUi;
-            var leaderTpElement = /*Leader.Element.Children?[3]*/ ui.PartyElement.PlayerElements.Find(e => e.PlayerName == Settings.Party.LeaderSelect)?.TeleportButton;
+            //var leaderTpElement = /*Leader.Element.Children?[3]*/ ui.PartyElement.PlayerElements.Find(e => e.PlayerName == Settings.Party.LeaderSelect)?.TeleportButton;
 
             if (false)//todo find it or ask instant sc to check it jajaajajaaj
             {
@@ -279,8 +279,19 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     var castWithTarget = GameController.PluginBridge
                         .GetMethod<Action<Element, Vector2i>>("MagicInput2.UiClick");
-                    castWithTarget(leaderTpElement, leaderTpElement.GetClientRect().Center.ToVector2Num().RoundToVector2I());
+                    castWithTarget(PartyLeader.Element.TeleportButton, PartyLeader.Element.TeleportButton.GetClientRect().Center.ToVector2Num().RoundToVector2I());
                 });
+            }
+            if (PartyLeader.Element.TeleportButton?.IsActive == true)
+            {
+                Graphics.DrawFrame(PartyLeader.Element.TeleportButton.GetClientRect(), SharpDX.Color.Red, 2);
+                Input.SetCursorPos(PartyLeader.Element.TeleportButton.GetClientRect().Center.ToVector2Num());
+                Input.Click(MouseButtons.Left);
+                Input.KeyDown(Keys.Enter);
+                Input.KeyUp(Keys.Enter);
+                Thread.Sleep(1000);
+                PartyLeader.LastTargetedPortalOrTransition = null;
+                return;
             }
             //else
             //{
@@ -298,7 +309,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             //}
         }
 
-       
+
         // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
         if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
@@ -379,7 +390,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             // Si on arrive ici, échec
             PartyLeader.LastTargetedPortalOrTransition = null;
             LogError("Failed to follow portal after all attempts");
-            return;
+           
+
         }
 
 
