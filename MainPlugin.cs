@@ -25,7 +25,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
 
     public bool IsTaskRunning = false;
-    public Leader Leader { get; private set; }
+    public Leader PartyLeader { get; private set; }
     public PlayerSkill MoveSkill => LocalPlayerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
     public PlayerSkill AttackSkill => LocalPlayerSkills.FirstOrDefault(x => x.Skill.Skill.IsAttack || x.Skill.Skill.IsSpell);
     DateTime lastMoveCheck = DateTime.Now;
@@ -66,14 +66,14 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         Settings.Server.ToggleLeaderServer.OnValueChanged += (foe, ar) =>
         {
-            if(ar && IsTaskRunning == false)
+            if (ar && IsTaskRunning == false)
             {
                 PartyServer = new PartyServer(this);
 
                 LogMessage("Starting leader server...", 0.5f);
                 PartyServer.Start();
             }
-            
+
            ;
         };
         Settings.Enable.OnValueChanged += (foe, ar) =>
@@ -92,9 +92,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         //changé récemment peut break???
         ToggleLeaderServer();
-        
 
-        if(IsTaskRunning == false && Settings.Party.ConnectClient)
+
+        if (IsTaskRunning == false && Settings.Party.ConnectClient)
             ConnectTask();
 
 
@@ -106,7 +106,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         IsTaskRunning = true;
 
 
-      if(PartyClient != null && PartyClient.IsConnected)
+        if (PartyClient != null && PartyClient.IsConnected)
         {
             return;
         }
@@ -118,7 +118,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         while (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
 
         {
-            if (GameController.Party().ChildCount <= 0)
+            if (GameController.Party().Count <= 0)
                 continue;
 
             LogMessage("Attempting to reconnect to party server...", 0.5f);
@@ -141,11 +141,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
             return;
         }
-        if(PartyClient == null)
+        if (PartyClient == null)
         {
             PartyClient = new PartyClient(this);
         }
-        if(!PartyClient.IsConnected)
+        if (!PartyClient.IsConnected)
             PartyClient.Connect();
     }
     public override Job Tick()
@@ -153,7 +153,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         LogMessage("FollowerPlugin Tick", 0.5f);
         SetLeader();
-     
+
         if (Settings.Server.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
@@ -168,7 +168,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 ConnectTask();
 
             if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
-            {             
+            {
+                
+                SetLeader();
                 FollowerBehavior();
             }
         }
@@ -177,13 +179,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     private void FollowerBehavior()
     {
         LogMessage("FollowerBehavior Tick", 0.5f);
-        SetLeader();
-        if(Leader == null)
-        {
-            
-            LogMessage("Leader is not set, skipping follower behavior.");
-            return;
-        }
+
 
         SetLocalSkillsAndShortCuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
@@ -197,8 +193,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogMessage("Flagged panels found, skipping follower behavior.");
             return;
         }
-       
-        if(Leader.Entity != null && (Leader.Entity.GetComponent<Actor>().Action == ActionFlags.None  && GameController.Player.Buffs.Any(b => b.Name.Equals("grace_period"))))
+
+        if (PartyLeader.Entity != null && (PartyLeader.Entity.GetComponent<Actor>().Action == ActionFlags.None && GameController.Player.Buffs.Any(b => b.Name.Equals("grace_period"))))
         {
             LogMessage(" is in grace period, skipping behaviors for now.");
             return;
@@ -206,9 +202,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
 
         // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
-        if (GameController.Area.CurrentArea.IsHideout && (Leader.CurrentArea != GameController.Area.CurrentArea.Name || Leader.Entity == null))
+        if (GameController.Area.CurrentArea.IsHideout && (!PartyLeader.IsSameZone || PartyLeader.Entity == null))
         {
-            LogMessage($"Leader {Leader.Name} is in a different map.");
+            LogMessage($"Leader {PartyLeader.Name} is in a different map.");
 
             if (Settings.Party.Follow)
             {
@@ -217,13 +213,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     .OrderBy(e => e.DistancePlayer)
                     .ToList();
 
-                var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == Leader.CurrentArea);
+                var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == PartyLeader.Element.ZoneName);
 
                 if (firstTP != null)
                 {
                     LogMessage($"Found town portal to follow: {firstTP.RenderName}", 0.5f);
 
-                    if(Settings.Party.UseInputManager)
+                    if (Settings.Party.UseInputManager)
                     {
                         this.TryDoAction(() =>
                         {
@@ -244,13 +240,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             return;
                         }
                     }
-                  
+
                 }
                 else
                 {
-                    if (Leader == null)
-                        SetLeader();
-                    var leaderTpElement = Leader.Element.Children?[3];
+                    
+                    var leaderTpElement = PartyLeader.Element.TeleportButton;
                     if (leaderTpElement?.IsActive == true)
                     {
                         Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
@@ -259,19 +254,19 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         Input.KeyDown(Keys.Enter);
                         Input.KeyUp(Keys.Enter);
                         Thread.Sleep(1000);
-                        Leader.LastTargetedPortalOrTransition = null;
+                        PartyLeader.LastTargetedPortalOrTransition = null;
                         return;
                     }
                 }
             }
         }
         //cas 5 : Leader n'est pas du tout sur la même map
-        if (Leader != null && (Leader.Entity == null || Leader.CurrentArea != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false )
+        if (/*PartyLeader != null && */(PartyLeader.Entity == null || PartyLeader.Element.ZoneName != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
         {
-            if(GameController.IsLoading)return;
+            if (GameController.IsLoading) return;
 
             var ui = GameController.IngameState.IngameUi;
-            var leaderTpElement = /*Leader.Element.Children?[3]*/ ui.PartyElement.PlayerElements.Find(e=>e.PlayerName == Settings.Party.LeaderSelect)?.TeleportButton;
+            var leaderTpElement = /*Leader.Element.Children?[3]*/ ui.PartyElement.PlayerElements.Find(e => e.PlayerName == Settings.Party.LeaderSelect)?.TeleportButton;
 
             if (false)//todo find it or ask instant sc to check it jajaajajaaj
             {
@@ -283,37 +278,37 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 });
             }
             else
-            { 
-            if (leaderTpElement?.IsActive == true)
             {
-                Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
-                Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
-                Input.Click(MouseButtons.Left);
-                Input.KeyDown(Keys.Enter);
-                Input.KeyUp(Keys.Enter);
-                Thread.Sleep(1000);
-                Leader.LastTargetedPortalOrTransition = null;
-                return;
-            }
+                if (leaderTpElement?.IsActive == true)
+                {
+                    Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+                    Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+                    Input.Click(MouseButtons.Left);
+                    Input.KeyDown(Keys.Enter);
+                    Input.KeyUp(Keys.Enter);
+                    Thread.Sleep(1000);
+                    PartyLeader.LastTargetedPortalOrTransition = null;
+                    return;
+                }
             }
         }
         // Cas 2 : Leader est sur la même map et utilise une transition ou un portail
-        if (Leader != null && Leader.IsLeaderOnSameMap() && Leader.Entity != null && Leader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+        if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
             {
-                Leader.LastTargetedPortalOrTransition = t;
+                PartyLeader.LastTargetedPortalOrTransition = t;
             }
         }
 
         // Cas 3 : Le leader vient de prendre un portail et on le suit
-        if (Leader != null && Leader.Entity != null && Leader.LastTargetedPortalOrTransition != null &&
-            Leader.CurrentArea == GameController.Area.CurrentArea.Name)
+        if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
+            PartyLeader.Element.ZoneName == GameController.Area.CurrentArea.Name)
         {
             Entity MyTarget = null;
             int maxtattempts = 50;
-            var portal = Leader.LastTargetedPortalOrTransition;
+            var portal = PartyLeader.LastTargetedPortalOrTransition;
 
             do
             {
@@ -358,7 +353,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     if (isSuccess)
                     {
                         LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
-                        Leader.LastTargetedPortalOrTransition = null;
+                        PartyLeader.LastTargetedPortalOrTransition = null;
                         Thread.Sleep(800); // attendre un peu pour laisser le temps de charger
                         return;
                     }
@@ -370,7 +365,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             } while (maxtattempts > 0);
 
             // Si on arrive ici, échec
-            Leader.LastTargetedPortalOrTransition = null;
+            PartyLeader.LastTargetedPortalOrTransition = null;
             LogError("Failed to follow portal after all attempts");
             return;
         }
@@ -383,7 +378,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void ManageLeaderOnSameMap()
     {
-        var leaderEntity = Leader.Entity;
+        var leaderEntity = PartyLeader.Entity;
         var playerEntity = GameController.Player;
         SetLocalSkillsAndShortCuts();
         if (leaderEntity != null)
@@ -423,7 +418,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         LogError($"Cry Skill {crySkill.InternalName} is already active, skipping.");
                         continue;
                     }
-                    else if(GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost){
+                    else if (GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost)
+                    {
                         LogError($"Not enough mana to use Cry Skill: {crySkill.InternalName}, skipping.");
                         continue;
                     }
@@ -583,7 +579,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 LogError("Stopping server...");
                 PartyServer.Stop();
             }
-            
+
         }
     }
 
@@ -592,14 +588,18 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         var pt = GameController.Party();
         if (pt == null)
             return;
-        Settings.Party.LeaderSelect.SetListValues(pt[0].Children.Select(child => child[0].Text).ToList());
-        var leaderElement = pt[0].Children.FirstOrDefault(child => child[0].Text == Settings.Party.LeaderSelect.Value);
+
+
+
+        Settings.Party.LeaderSelect.SetListValues(pt.ToList().Select(m => m.PlayerName.ToString()).ToList());
+
+        var leaderElement = pt.FirstOrDefault(x => x.PlayerName == Settings.Party.LeaderSelect);
         if (leaderElement == null)
             return;
 
-        Leader = new Leader
+        PartyLeader = new Leader
         {
-            Name = leaderElement[0].Text,
+            Name = leaderElement.PlayerName,
             Element = leaderElement,
             LastTargetedPortalOrTransition = null
         };
@@ -634,7 +634,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             return;
         }
 
-       
+
         var actor = GameController.Player.GetComponent<Actor>();
         var skillbar = GameController.IngameState.IngameUi.SkillBar;
         LocalPlayerSkills.Clear();

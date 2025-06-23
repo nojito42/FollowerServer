@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows.Forms;
 using FollowerPlugin;
 using ExileCore.PoEMemory.Components;
+using ExileCore.PoEMemory.Elements;
 
 namespace FollowerServer;
 
@@ -29,8 +30,8 @@ public static class Extensions
         }
         return false;
     }
-    public static Element Party(this GameController gc) => gc.IngameState.IngameUi.PartyElement.Children[0];
-    public static bool IsLeaderOnSameMap(this Leader l) => l.Element?.ChildCount == 3;
+    public static List<PartyElementPlayerElement> Party(this GameController gc) => gc.IngameState.IngameUi.PartyElement.PlayerElements;
+    //public static bool IsLeaderOnSameMap(this Leader l) => l.Element?.ChildCount == 3;
     public static bool IsShortCutPressed(this Shortcut shortcut)
     {
         return shortcut.MainKey != ConsoleKey.None &&
