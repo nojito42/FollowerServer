@@ -385,6 +385,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         // Cas 5 : fallback si rien d’autre ne s’est passé, gérer comportement normal
         LogMessage("Cas 5 : fallback, gérer comportement normal", 0.5f);
+        PartyLeader.LastTargetedPortalOrTransition = null; // Reset last targeted portal or transition
         ManageLeaderOnSameMap();
 
 
