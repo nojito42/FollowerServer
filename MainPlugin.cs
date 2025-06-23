@@ -32,8 +32,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     float lastMoveDelayMS = 20f; //ms
     public IList<Shortcut> Shortcuts { get; set; }
 
-    public PartyServer PartyServer { get; private set; }
-    public PartyClient PartyClient { get; private set; }
+    public PartyServer PartyServer { get; set; }
+    public PartyClient PartyClient { get; set; }
     public DateTime LastLeaderInput { get; set; } = DateTime.Now;
 
     public override bool Initialise()
@@ -166,11 +166,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (Settings.Server.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
-            {
-
                 ServerTickForLeaderBroadcast();
-            }
         }
+
         else
         {
             if (!IsTaskRunning && Settings.Party.ConnectClient)
@@ -208,12 +206,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             return;
         }
         LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.IsSameZone} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
-
-        if (PartyLeader == null)
-            return;
-
         // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
-        if (PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+        if (PartyLeader.IsSameZone && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
@@ -225,7 +219,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
         // Cas 3 : Le leader vient de prendre un portail et on le suit
-        if (PartyLeader != null && PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
+        if (PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.IsSameZone)
         {
             var portal = PartyLeader.LastTargetedPortalOrTransition;
@@ -240,7 +234,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var castWithTarget = GameController.PluginBridge
                     .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
                 castWithTarget(portal, 0x400);
-            });         
+            });
             DateTime startTime = DateTime.Now;
             // Maintenant, on arrête les actions et on attend que le portail soit quitté ou loading
             while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target == portal || this.GetBuffs().Any(b => b.Name.Equals("grace_period")))
@@ -673,14 +667,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         DisconnectWithMessage("Unloading FollowerPlugin.");
         base.OnUnload();
     }
-    private void DisconnectWithMessage(string message)
-    {
-        LogError(message, 5);
-        PartyClient?.Disconnect();
-        PartyClient = null;
-        PartyServer?.Stop();
-        PartyServer = null;
-        IsTaskRunning = false;
-    }
+  
     #endregion
 }

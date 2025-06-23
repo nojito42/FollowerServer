@@ -81,4 +81,14 @@ public static class FollowerPluginExtensions
     {
         return p.GameController.Player.Buffs;
     }
+
+    public static void DisconnectWithMessage(this MainPlugin p, string message)
+    {
+        p.LogError(message, 5);
+        p.PartyClient?.Disconnect();
+        p.PartyClient = null;
+        p.PartyServer?.Stop();
+        p.PartyServer = null;
+        p.IsTaskRunning = false;
+    }
 }
