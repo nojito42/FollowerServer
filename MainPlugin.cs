@@ -298,12 +298,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
         // Cas 4 : Le leader vient de prendre un portail et on le suit
-        if (PartyLeader.LastTargetedPortalOrTransition != null &&
+        if (PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.IsSameZone)
         {
             LogMessage($"Cas 4 : Le leader vient de prendre un portail et on le suit: {PartyLeader.LastTargetedPortalOrTransition.RenderName}", 20f);
             Entity MyTarget = null;
-            int maxtattempts = 50;
+            int maxtattempts = 5;
             var portal = PartyLeader.LastTargetedPortalOrTransition;
 
             do
@@ -321,7 +321,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
                         castWithTarget(portal, 0x400);
                     });
-                    Thread.Sleep(100);
+                    Thread.Sleep(200);
 
 
                 }
