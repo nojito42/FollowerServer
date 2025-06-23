@@ -218,9 +218,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == PartyLeader.Element.ZoneName);
 
-                if (firstTP != null)
+                if (firstTP != null && firstTP.DistancePlayer < 50)
                 {
-                    LogMessage($"Found town portal to follow: {firstTP.RenderName}", 0.5f);
+                    LogMessage($"Found town portal to follow: {firstTP.RenderName} distance{firstTP.DistancePlayer}", 0.5f);
 
                     if (Settings.Party.UseInputManager)
                     {
@@ -230,6 +230,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                 .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
                             castWithTarget(firstTP, 0x400);
                         });
+                        return;
                     }
                     else
                     {
