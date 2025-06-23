@@ -32,7 +32,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
     public override bool Initialise()
     {
-        var memorySharp  = new Binarysharp.MemoryManagement.MemorySharp(GameController.Memory.Process);
 
 
         IsTaskRunning = false;
@@ -97,6 +96,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
 
         return true;
+    }
+    public override void AreaChange(AreaInstance area)
+    {
+        var memorySharp = new Binarysharp.MemoryManagement.MemorySharp(GameController.Memory.Process);
+
+        base.AreaChange(area);
     }
     private void ConnectTask()
     {
