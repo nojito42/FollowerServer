@@ -334,7 +334,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     });
                     Thread.Sleep(100);
 
-                    break;
+                   
                 }
 
 
