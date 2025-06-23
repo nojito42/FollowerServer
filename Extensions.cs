@@ -31,7 +31,6 @@ public static class Extensions
         return false;
     }
     public static List<PartyElementPlayerElement> Party(this GameController gc) => gc.IngameState.IngameUi.PartyElement.PlayerElements;
-    //public static bool IsLeaderOnSameMap(this Leader l) => l.Element?.ChildCount == 3;
     public static bool IsShortCutPressed(this Shortcut shortcut)
     {
         return shortcut.MainKey != ConsoleKey.None &&
@@ -66,11 +65,11 @@ public static class Extensions
 }
 public static class FollowerPluginExtensions
 {
-    public static DateTime lastActionTime = DateTime.MinValue;
-    public static int ActionCooldownMS = 50;
+    private static DateTime lastActionTime = DateTime.MinValue;
+    private static int actionCooldownMS = 50;
     public static bool TryDoAction(this MainPlugin p, Action act)
     {
-        if ((DateTime.Now - lastActionTime).TotalMilliseconds < ActionCooldownMS)
+        if ((DateTime.Now - lastActionTime).TotalMilliseconds < actionCooldownMS)
             return false;
 
         lastActionTime = DateTime.Now;
