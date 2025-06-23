@@ -13,6 +13,7 @@ using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
 using System.Threading.Tasks;
+using Binarysharp.MemoryManagement;
 namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -31,6 +32,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
     public override bool Initialise()
     {
+        var memorySharp  = new Binarysharp.MemoryManagement.MemorySharp(GameController.Memory.Process);
+
+
         IsTaskRunning = false;
         var mem = GameController.Memory;
         var sc = GameController.IngameState.ShortcutSettings.Shortcuts;
