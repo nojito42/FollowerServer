@@ -299,10 +299,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
          if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
-            LogMessage($"Cas 3 : Leader est sur la même map et utilise une transition ou un portail: {leaderActor.CurrentAction?.Target?.RenderName}", 0.5f);
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
             {
+                LogMessage($"Cas 3 : Leader est sur la même map et utilise une transition ou un portail: {leaderActor.CurrentAction?.Target?.RenderName}", 0.5f);
+
                 PartyLeader.LastTargetedPortalOrTransition = t;
             }
         }
@@ -311,13 +312,14 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.Element.ZoneName == GameController.Area.CurrentArea.Name)
         {
-            LogMessage($"Cas 4 : Le leader vient de prendre un portail et on le suit: {PartyLeader.LastTargetedPortalOrTransition.RenderName}", 0.5f);
             Entity MyTarget = null;
             int maxtattempts = 50;
             var portal = PartyLeader.LastTargetedPortalOrTransition;
 
             do
             {
+                LogMessage($"Cas 4 : Le leader vient de prendre un portail et on le suit: {PartyLeader.LastTargetedPortalOrTransition.RenderName}");
+
                 var portalPosition = portal.BoundsCenterPosNum;
                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
 
