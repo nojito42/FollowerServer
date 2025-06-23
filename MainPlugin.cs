@@ -200,7 +200,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.IsSameZone} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
 
-
+        return;
+        return;
         // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
         if (GameController.Area.CurrentArea.IsHideout && (!PartyLeader.IsSameZone))
         {
