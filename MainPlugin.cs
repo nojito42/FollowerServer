@@ -313,6 +313,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.Element.ZoneName == GameController.Area.CurrentArea.Name)
         {
+            LogMessage($"Cas 4 : Le leader vient de prendre un portail et on le suit: {PartyLeader.LastTargetedPortalOrTransition.RenderName}", 20f);
             Entity MyTarget = null;
             int maxtattempts = 50;
             var portal = PartyLeader.LastTargetedPortalOrTransition;
