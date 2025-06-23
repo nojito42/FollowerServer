@@ -76,7 +76,19 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             
            ;
         };
-       
+        Settings.Enable.OnValueChanged += (foe, ar) =>
+        {
+            if (ar)
+            {
+                LogMessage("FollowerPlugin enabled.", 0.5f);
+            }
+            else
+            {
+                LogMessage("FollowerPlugin disabled.", 0.5f);
+                this.DisconnectWithMessage("FollowerPlugin has been disabled. Disconnecting from party server.");
+            }
+        };
+
 
         //changé récemment peut break???
         ToggleLeaderServer();
