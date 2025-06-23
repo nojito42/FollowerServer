@@ -65,16 +65,24 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         Settings.Server.ToggleLeaderServer.OnValueChanged += (foe, ar) =>
         {
-            PartyServer = new PartyServer(this);
-            ToggleLeaderServer();
+            if(ar && IsTaskRunning == false)
+            {
+                PartyServer = new PartyServer(this);
+
+                LogMessage("Starting leader server...", 0.5f);
+                PartyServer.Start();
+            }
+            
+           ;
         };
        
 
         //changé récemment peut break???
         ToggleLeaderServer();
         
-        //a bien verifier
-        ConnectTask();
+
+        if(IsTaskRunning == false && Settings.Party.ConnectClient)
+            ConnectTask();
 
 
 
@@ -82,11 +90,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void ConnectTask()
     {
-        if (IsTaskRunning) return;
-        LogError("Starting ConnectTask...", 0.5f);
+        IsTaskRunning = true;
 
         _ = Task.Run(async () =>
     {
+        LogError("Starting ConnectTask...", 0.5f);
 
         while (Settings.Party.ConnectClient && (PartyClient == null))
 
@@ -114,7 +122,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
             return;
         }
-        PartyClient.Connect();
+        if(PartyClient == null)
+        {
+            PartyClient = new PartyClient(this);
+        }
+        if(!PartyClient.IsConnected)
+            PartyClient.Connect();
     }
     public override Job Tick()
     {
