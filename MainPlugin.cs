@@ -282,23 +282,25 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     castWithTarget(leaderTpElement, leaderTpElement.GetClientRect().Center.ToVector2Num().RoundToVector2I());
                 });
             }
-            else
-            {
-                if (leaderTpElement?.IsActive == true)
-                {
-                    Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
-                    Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
-                    Input.Click(MouseButtons.Left);
-                    Input.KeyDown(Keys.Enter);
-                    Input.KeyUp(Keys.Enter);
-                    Thread.Sleep(1000);
-                    PartyLeader.LastTargetedPortalOrTransition = null;
-                    return;
-                }
-            }
+            //else
+            //{
+            //    if (leaderTpElement?.IsActive == true)
+            //    {
+            //        Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+            //        Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+            //        Input.Click(MouseButtons.Left);
+            //        Input.KeyDown(Keys.Enter);
+            //        Input.KeyUp(Keys.Enter);
+            //        Thread.Sleep(1000);
+            //        PartyLeader.LastTargetedPortalOrTransition = null;
+            //        return;
+            //    }
+            //}
         }
+
+       
         // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
-         if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+        if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
@@ -308,7 +310,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 PartyLeader.LastTargetedPortalOrTransition = t;
             }
         }
-        return;
+       
         // Cas 4 : Le leader vient de prendre un portail et on le suit
         if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.Element.ZoneName == GameController.Area.CurrentArea.Name)
