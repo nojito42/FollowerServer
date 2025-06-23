@@ -270,7 +270,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             if(GameController.IsLoading)return;
 
-            var leaderTpElement = Leader.Element.Children?[3];
+            var ui = GameController.IngameState.IngameUi;
+            var leaderTpElement = /*Leader.Element.Children?[3]*/ ui.PartyElement.PlayerElements.Find(e=>e.PlayerName == Settings.Party.LeaderSelect)?.TeleportButton;
 
             if (false)//todo find it or ask instant sc to check it jajaajajaaj
             {
