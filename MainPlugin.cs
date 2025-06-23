@@ -155,25 +155,31 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         SetLeader();
 
         if (Settings.Server.ToggleLeaderServer.Value)
+        {
             if (PartyServer != null && PartyServer.IsRunning)
-                ServerTickForLeaderBroadcast();
-
-            else
             {
-                if (!IsTaskRunning && Settings.Party.ConnectClient)
-                    ConnectTask();
 
-                if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
-                {
-
-                    SetLeader();
-                    FollowerBehavior();
-                }
+                ServerTickForLeaderBroadcast();
             }
+        }
+        else
+        {
+            if (!IsTaskRunning && Settings.Party.ConnectClient)
+                ConnectTask();
+
+            if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
+            {
+
+                SetLeader();
+                FollowerBehavior();
+            }
+        }
         return null;
     }
     private void FollowerBehavior()
     {
+
+
         SetLocalSkillsAndShortCuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
         {
@@ -355,6 +361,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
 
             } while (maxtattempts > 0);
+
             // Si on arrive ici, échec
             PartyLeader.LastTargetedPortalOrTransition = null;
             LogError("Failed to follow portal after all attempts");
