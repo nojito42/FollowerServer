@@ -335,12 +335,14 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     if (!Settings.Party.UseInputManager && screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
                     {
                         Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
-                        Input.SetCursorPos(screenPos);
                         Input.Click(MouseButtons.Left);
                         Thread.Sleep(800); // plus réaliste que 20ms
                     }
                     else
                     {
+                        Input.SetCursorPos(screenPos);
+
+                        Thread.Sleep(20); // attendre un peu pour laisser le temps de charger
                         LogError($"Portal not visible on screen: {portal.RenderName}, attempts left: {maxtattempts}", 100);
                     }
 
