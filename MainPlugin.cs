@@ -178,7 +178,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void FollowerBehavior()
     {
-        LogMessage("FollowerBehavior Tick", 0.5f);
+        LogMessage("FollowerBehavior Tick");
 
 
         SetLocalSkillsAndShortCuts();
@@ -263,7 +263,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         //cas 5 : Leader n'est pas du tout sur la même map
 
-        if (/*PartyLeader != null && */(PartyLeader.Entity == null || PartyLeader.Element.ZoneName != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
+        else if (/*PartyLeader != null && */(PartyLeader.Entity == null || PartyLeader.Element.ZoneName != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
         {
             if (GameController.IsLoading) return;
 
@@ -295,7 +295,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         // Cas 2 : Leader est sur la même map et utilise une transition ou un portail
-        if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+        else if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
@@ -305,7 +305,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
         // Cas 3 : Le leader vient de prendre un portail et on le suit
-        if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
+        else if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.Element.ZoneName == GameController.Area.CurrentArea.Name)
         {
             Entity MyTarget = null;
