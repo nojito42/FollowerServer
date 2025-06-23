@@ -202,7 +202,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         if(PartyLeader == null)
             return;
-        return;
+      
        
         // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
         if (GameController.Area.CurrentArea.IsHideout && (!PartyLeader.IsSameZone))
