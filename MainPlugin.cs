@@ -238,7 +238,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
                     castWithTarget(portal, 0x400);
                 });
-                Thread.Sleep(100); // petit délai pour laisser l'action se lancer
+                var MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
+                if(MyTarget != portal)
+                {
+                    LogError("Failed to follow portal, player is no longer targeting it.");
+                    return;
+                }
             }
             else
             {
@@ -504,7 +509,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                 LogError($"Casting skill with target: {moveSkill.Skill.Skill.Name}");
                                 var castWithTarget = GameController.PluginBridge
                                     .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
-                                castWithTarget(leaderEntity, 0x408);
+                                castWithTarget(leaderEntity, 0x400);
                             });
                         }
                         else
