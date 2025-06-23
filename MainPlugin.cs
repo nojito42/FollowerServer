@@ -266,8 +266,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         //cas 5 : Leader n'est pas du tout sur la même map
-        if (Leader != null && (Leader.Entity == null || Leader.CurrentArea != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
+        if (Leader != null && (Leader.Entity == null || Leader.CurrentArea != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false )
         {
+            if(GameController.IsLoading)return;
+
             var leaderTpElement = Leader.Element.Children?[3];
 
             if (false)//todo find it or ask instant sc to check it jajaajajaaj
