@@ -152,12 +152,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         var currentTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
-        if(currentTarget != null)
+        if (currentTarget != null)
         {
             LogMessage($"Current Target: {currentTarget.RenderName} - Type: {currentTarget.Type} - Distance: {currentTarget.DistancePlayer}");
         }
-      
-        if(SetLeader() == false)
+
+        if (SetLeader() == false)
         {
             LogError("Failed to set leader. Please check your party settings.");
             return null;
@@ -234,41 +234,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             var portalPosition = portal.BoundsCenterPosNum;
             var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
 
-            if (Settings.Party.UseInputManager)
-            {
-                this.TryDoAction(() =>
-                {
-                    var castWithTarget = GameController.PluginBridge
-                        .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
-                    castWithTarget(portal, 0x400);
-                });
-                var MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
-                if(MyTarget != portal)
-                {
-                    LogError("Failed to follow portal, player is no longer targeting it.");
-                    return;
-                }
-            }
-            else
-            {
-                // On clique une seule fois s'il est visible et ciblable
-                if (screenPos != Vector2.Zero &&
-                    GameController.Window.GetWindowRectangle().Contains(screenPos) &&
-                    GameController.IngameState.UIHover != null &&
-                    GameController.IngameState.UIHover.Entity == portal)
-                {
-                    Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
-                    Input.SetCursorPos(screenPos);
-                    Input.Click(MouseButtons.Left);
-                    Thread.Sleep(200);
-                }
-                else
-                {
-                    LogError($"Portal not visible on screen: {portal.RenderName}, aborting");
-                    return;
-                }
-            }
 
+            this.TryDoAction(() =>
+            {
+                var castWithTarget = GameController.PluginBridge
+                    .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
+                castWithTarget(portal, 0x400);
+            });         
             DateTime startTime = DateTime.Now;
             // Maintenant, on arrête les actions et on attend que le portail soit quitté ou loading
             while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target == portal || this.GetBuffs().Any(b => b.Name.Equals("grace_period")))
@@ -281,8 +253,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     PartyLeader.LastTargetedPortalOrTransition = null;
                     return;
                 }
-                   
-                
+
+
                 MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
                 if (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading)
@@ -330,30 +302,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 if (firstTP != null && firstTP.DistancePlayer < 50)
                 {
                     LogMessage($"Found town portal to follow: {firstTP.RenderName} distance{firstTP.DistancePlayer}", 0.5f);
-
-                    if (Settings.Party.UseInputManager)
+                    this.TryDoAction(() =>
                     {
-                        this.TryDoAction(() =>
-                        {
-                            var castWithTarget = GameController.PluginBridge
-                                .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
-                            castWithTarget(firstTP, 0x400);
-                        });
-                        return;
-                    }
-                    else
-                    {
-                        var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(firstTP.BoundsCenterPosNum);
-                        if (screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos))
-                        {
-                            Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
-                            Input.SetCursorPos(screenPos);
-                            Input.Click(MouseButtons.Left);
-                            Thread.Sleep(100);
-                            return;
-                        }
-                    }
-
+                        var castWithTarget = GameController.PluginBridge
+                            .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
+                        castWithTarget(firstTP, 0x400);
+                    });
+                    return;
                 }
                 else
                 {
@@ -392,15 +347,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 return;
             }
         }
-
-
-  
         // Cas 5 : fallback si rien d’autre ne s’est passé, gérer comportement normal
         LogMessage("Cas 5 : fallback, gérer comportement normal", 0.5f);
         PartyLeader.LastTargetedPortalOrTransition = null; // Reset last targeted portal or transition
         ManageLeaderOnSameMap();
-
-
     }
     private void ManageLeaderOnSameMap()
     {
@@ -477,54 +427,25 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     if (pf.PathingNodes.Count > 0)
                     {
                         var lastNode = pf.PathingNodes.Last();
-                        if (Settings.Party.UseInputManager)
+
+                        this.TryDoAction(() =>
                         {
-                            this.TryDoAction(() =>
-                            {
-                                var castWithPos = GameController.PluginBridge
-                                    .GetMethod<Action<Vector2i, uint>>("MagicInput.CastSkillWithPosition");
-                                castWithPos(lastNode, 0x400);
-                            });
-                        }
-                        else
-                        {
-                            var screenPos = GameController.IngameState.Camera.WorldToScreen(
-                                GameController.IngameState.Data.ToWorldWithTerrainHeight(lastNode));
-                            this.TryDoAction(() =>
-                            {
-                                Input.SetCursorPos(screenPos);
-                                if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
-                                {
-                                    Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
-                                }
-                            });
-                        }
+                            var castWithPos = GameController.PluginBridge
+                                .GetMethod<Action<Vector2i, uint>>("MagicInput.CastSkillWithPosition");
+                            castWithPos(lastNode, 0x400);
+                        });
+
+
                     }
                     else if (!playerisattacking && playerEntity.DistancePlayer <= Settings.Party.KeepLeaderInRange.Value)
                     {
-                        if (Settings.Party.UseInputManager)
+                        this.TryDoAction(() =>
                         {
-                            this.TryDoAction(() =>
-                            {
-                                LogError($"Casting skill with target: {moveSkill.Skill.Skill.Name}");
-                                var castWithTarget = GameController.PluginBridge
-                                    .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
-                                castWithTarget(leaderEntity, 0x400);
-                            });
-                        }
-                        else
-                        {
-                            var playerscreenpos = GameController.IngameState.Camera.WorldToScreen(leaderEntity.PosNum);
-
-                            this.TryDoAction(() =>
-                            {
-                                Input.SetCursorPos(playerscreenpos);
-                                if (!Input.IsKeyDown((Keys)moveSkill.Shortcut.MainKey))
-                                {
-                                    Input.KeyDown((Keys)moveSkill.Shortcut.MainKey);
-                                }
-                            });
-                        }
+                            LogError($"Casting skill with target: {moveSkill.Skill.Skill.Name}");
+                            var castWithTarget = GameController.PluginBridge
+                                .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
+                            castWithTarget(leaderEntity, 0x400);
+                        });
                     }
                 }
             }

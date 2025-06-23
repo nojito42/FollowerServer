@@ -39,7 +39,6 @@ public class PartySubMenu
     public RangeNode<int> LeaderMaxDistance { get; set; } = new RangeNode<int>(80, 30, 200);
     public RangeNode<int> KeepLeaderInRange { get; set; } = new RangeNode<int>(10, 5, 30);
     public ToggleNode FollowInTown { get; set; } = new ToggleNode(false);
-    public ToggleNode UseInputManager { get; set; } = new ToggleNode(true);
     public ToggleNode UseSmartTPSkill { get; set; } = new ToggleNode(true);
     public ToggleNode UseCriesAuto { get; set; } = new ToggleNode(true);
     public RangeNode<int> screenOffsetAdjustementX { get; set; } = new RangeNode<int>(0, -200, 200);
