@@ -24,8 +24,5 @@
     <Reference Include="GameOffsets">
       <HintPath>..\..\..\GameOffsets.dll</HintPath>
     </Reference>
-    <Reference Include="MemorySharp">
-      <HintPath>C:\Users\Jonat\Downloads\MemorySharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
