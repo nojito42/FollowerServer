@@ -199,6 +199,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogMessage(" is in grace period, skipping behaviors for now.");
             return;
         }
+        LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.Element.ZoneName} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
 
 
         // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
@@ -262,7 +263,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         //cas 5 : Leader n'est pas du tout sur la même map
 
-        LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.Element.ZoneName} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
         if (/*PartyLeader != null && */(PartyLeader.Entity == null || PartyLeader.Element.ZoneName != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
         {
             if (GameController.IsLoading) return;
