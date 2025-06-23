@@ -313,7 +313,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var portalPosition = portal.BoundsCenterPosNum;
                 var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
 
-                if (Settings.Party.UseInputManager)
+                if (/*Settings.Party.UseInputManager*/false)
                 {
                     this.TryDoAction(() =>
                     {
