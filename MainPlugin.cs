@@ -262,7 +262,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
             DateTime startTime = DateTime.Now;
             // Maintenant, on arrête les actions et on attend que le portail soit quitté ou loading
-            while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target != portal )
+            while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target == portal || this.GetBuffs().Any(b => b.Name.Equals("grace_period")))
             {
                 var MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
                 // Fix for the line causing multiple errors
