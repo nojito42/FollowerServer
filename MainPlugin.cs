@@ -155,31 +155,25 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         SetLeader();
 
         if (Settings.Server.ToggleLeaderServer.Value)
-        {
             if (PartyServer != null && PartyServer.IsRunning)
-            {
-
                 ServerTickForLeaderBroadcast();
-            }
-        }
-        else
-        {
-            if (!IsTaskRunning && Settings.Party.ConnectClient)
-                ConnectTask();
 
-            if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
+            else
             {
-                
-                SetLeader();
-                FollowerBehavior();
+                if (!IsTaskRunning && Settings.Party.ConnectClient)
+                    ConnectTask();
+
+                if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
+                {
+
+                    SetLeader();
+                    FollowerBehavior();
+                }
             }
-        }
         return null;
     }
     private void FollowerBehavior()
     {
-
-
         SetLocalSkillsAndShortCuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
         {
@@ -200,10 +194,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.IsSameZone} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
 
-        if(PartyLeader == null)
+        if (PartyLeader == null)
             return;
-      
-       
+
+
         // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
         if (GameController.Area.CurrentArea.IsHideout && (!PartyLeader.IsSameZone))
         {
@@ -248,7 +242,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
                 else
                 {
-                    
+
                     var leaderTpElement = PartyLeader.Element.TeleportButton;
                     if (leaderTpElement?.IsActive == true)
                     {
@@ -265,23 +259,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         //cas 2 : Leader n'est pas du tout sur la même map
-       
-        if (/*PartyLeader != null && */(!PartyLeader.IsSameZone) && GameController.Area.CurrentArea.IsHideout == false)
+
+        if (!PartyLeader.IsSameZone && !GameController.Area.CurrentArea.IsHideout)
         {
             LogMessage($"cas 2 : Leader n'est pas du tout sur la même map, on va essayer de le suivre");
 
             var ui = GameController.IngameState.IngameUi;
-            //var leaderTpElement = /*Leader.Element.Children?[3]*/ ui.PartyElement.PlayerElements.Find(e => e.PlayerName == Settings.Party.LeaderSelect)?.TeleportButton;
-
-            if (false)//todo find it or ask instant sc to check it jajaajajaaj
-            {
-                this.TryDoAction(() =>
-                {
-                    var castWithTarget = GameController.PluginBridge
-                        .GetMethod<Action<Element, Vector2i>>("MagicInput2.UiClick");
-                    castWithTarget(PartyLeader.Element.TeleportButton, PartyLeader.Element.TeleportButton.GetClientRect().Center.ToVector2Num().RoundToVector2I());
-                });
-            }
             if (PartyLeader.Element.TeleportButton?.IsActive == true)
             {
                 Graphics.DrawFrame(PartyLeader.Element.TeleportButton.GetClientRect(), SharpDX.Color.Red, 2);
@@ -293,25 +276,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 PartyLeader.LastTargetedPortalOrTransition = null;
                 return;
             }
-            //else
-            //{
-            //    if (leaderTpElement?.IsActive == true)
-            //    {
-            //        Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
-            //        Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
-            //        Input.Click(MouseButtons.Left);
-            //        Input.KeyDown(Keys.Enter);
-            //        Input.KeyUp(Keys.Enter);
-            //        Thread.Sleep(1000);
-            //        PartyLeader.LastTargetedPortalOrTransition = null;
-            //        return;
-            //    }
-            //}
         }
 
 
         // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
-        if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+        if (PartyLeader.IsSameZone && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
@@ -321,10 +290,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 PartyLeader.LastTargetedPortalOrTransition = t;
             }
         }
-       
+
         // Cas 4 : Le leader vient de prendre un portail et on le suit
-        if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
-            PartyLeader.Element.ZoneName == GameController.Area.CurrentArea.Name)
+        if (PartyLeader.LastTargetedPortalOrTransition != null &&
+            PartyLeader.IsSameZone)
         {
             LogMessage($"Cas 4 : Le leader vient de prendre un portail et on le suit: {PartyLeader.LastTargetedPortalOrTransition.RenderName}", 20f);
             Entity MyTarget = null;
@@ -348,7 +317,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     });
                     Thread.Sleep(100);
 
-                   
+
                 }
 
 
@@ -386,15 +355,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
 
             } while (maxtattempts > 0);
-
             // Si on arrive ici, échec
             PartyLeader.LastTargetedPortalOrTransition = null;
             LogError("Failed to follow portal after all attempts");
-           
+
 
         }
-
-
         // Cas 5 : fallback si rien d’autre ne s’est passé, gérer comportement normal
         LogMessage("Cas 5 : fallback, gérer comportement normal", 0.5f);
         PartyLeader.LastTargetedPortalOrTransition = null; // Reset last targeted portal or transition
@@ -614,9 +580,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         var pt = GameController.Party();
         if (pt == null)
             return;
-
-
-
         Settings.Party.LeaderSelect.SetListValues(pt.ToList().Select(m => m.PlayerName.ToString()).ToList());
 
         var leaderElement = pt.FirstOrDefault(x => x.PlayerName == Settings.Party.LeaderSelect);
@@ -630,21 +593,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LastTargetedPortalOrTransition = null
         };
     }
-    //private void SetLeaderSkillAndShortCuts()
-    //{
-    //    var sc3 = Shortcuts;
-    //    var sc = sc3[0].ToString().Contains("MoveUp") ? sc3.Skip(9).Take(13).ToList() : sc3.Skip(7).Take(13).ToList();//sc2.Skip(5).Take(13).ToList();
-    //    Leader.Skills.Clear();
-    //    for (int i = 0; i < sc.Count; i++)
-    //    {
-    //        var skillBarSkill = GameController.IngameState.IngameUi.SkillBar.Skills[i];
-    //        Leader.Skills.Add(new PlayerSkill
-    //        {
-    //            Shortcut = sc[i],
-    //            Skill = skillBarSkill
-    //        });
-    //    }
-    //}
     private void ServerTickForLeaderBroadcast()
     {
         if (GameController.IsLoading) return;
