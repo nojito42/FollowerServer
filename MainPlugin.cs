@@ -329,22 +329,23 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 else
                 {
-                    LogMessage($"Attempting to follow portal: {portal.RenderName}, attempts left: {maxtattempts}");
+                    //LogMessage($"Attempting to follow portal: {portal.RenderName}, attempts left: {maxtattempts}");
 
+                    
                     // Check visible + click
-                    if (/*!Settings.Party.UseInputManager &&*/ screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
+                    if (/*/*!Settings.Party.UseInputManager & screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal*/ true)
                     {
+                        var portalPos = GameController.IngameState.Data.GetWorldScreenPosition(portal.BoundsCenterPosNum);
+
+                        Input.SetCursorPos(portalPos);
+
+                        Thread.Sleep(20); // attendre un peu pour que le curseur se positionne correctement
+                        LogError($"Portal visible on screen: {portal.RenderName}, clicking at position: {screenPos}", 100);
                         Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                         Input.Click(MouseButtons.Left);
                         Thread.Sleep(800); // plus réaliste que 20ms
                     }
-                    else
-                    {
-                        Input.SetCursorPos(screenPos);
-
-                        Thread.Sleep(20); // attendre un peu pour laisser le temps de charger
-                        LogError($"Portal not visible on screen: {portal.RenderName}, attempts left: {maxtattempts}", 100);
-                    }
+                   
 
                     MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
