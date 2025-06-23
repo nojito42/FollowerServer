@@ -265,7 +265,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         //cas 2 : Leader n'est pas du tout sur la même map
-        return;
+       
         if (/*PartyLeader != null && */(PartyLeader.Entity == null || !PartyLeader.IsSameZone == false) && GameController.Area.CurrentArea.IsHideout == false)
         {
             LogMessage($"cas 2 : Leader n'est pas du tout sur la même map, on va essayer de le suivre");
@@ -308,7 +308,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 PartyLeader.LastTargetedPortalOrTransition = t;
             }
         }
-
+        return;
         // Cas 4 : Le leader vient de prendre un portail et on le suit
         if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.Element.ZoneName == GameController.Area.CurrentArea.Name)
