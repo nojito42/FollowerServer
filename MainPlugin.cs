@@ -483,9 +483,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         {
                             this.TryDoAction(() =>
                             {
+                                LogError($"Casting skill with target: {moveSkill.Skill.Skill.Name}");
                                 var castWithTarget = GameController.PluginBridge
                                     .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
-                                castWithTarget(leaderEntity, 0x400);
+                                castWithTarget(leaderEntity, 0x408);
                             });
                         }
                         else
