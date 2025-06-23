@@ -345,8 +345,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                         Input.Click(MouseButtons.Left);
                         Thread.Sleep(800); // plus réaliste que 20ms
+                        continue;
                     }
-                   
+
+                    PartyLeader.LastTargetedPortalOrTransition = null;
 
                     MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
@@ -357,7 +359,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
                         PartyLeader.LastTargetedPortalOrTransition = null;
                         Thread.Sleep(800); // attendre un peu pour laisser le temps de charger
-                        break;
+                        return;
                     }
 
                     LogError($"Attempt failed. Attempts left: {maxtattempts}");
