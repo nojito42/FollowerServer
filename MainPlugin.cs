@@ -13,6 +13,7 @@ using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
 using System.Threading.Tasks;
+using System.Diagnostics;
 namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -24,6 +25,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public PlayerSkill AttackSkill => LocalPlayerSkills.FirstOrDefault(x => x.Skill.Skill.IsAttack || x.Skill.Skill.IsSpell);
     DateTime lastMoveCheck = DateTime.Now;
     float lastMoveDelayMS = 20f; //ms
+
     public IList<Shortcut> Shortcuts { get; set; }
     public PartyServer PartyServer { get; set; }
     public PartyClient PartyClient { get; set; }
@@ -98,7 +100,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override void AreaChange(AreaInstance area)
     {
-        var memorySharp = new Binarysharp.MemoryManagement.MemorySharp(GameController.Memory.Process);
+      
 
         base.AreaChange(area);
     }
@@ -590,7 +592,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         Graphics.DrawCircleInWorld(e.PosNum, Settings.Server.CircleRadius, colors[i] with { A = (byte)Settings.Server.CircleAlpha }, Settings.Server.CircleThickness);
                         i++;
                     }
+
+                   
                 });
+
+              
             }
         }
     }
