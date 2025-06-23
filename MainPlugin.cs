@@ -286,7 +286,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
 
         // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
-        if (PartyLeader.IsSameZone && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+        if (PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
