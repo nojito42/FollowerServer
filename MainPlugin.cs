@@ -82,6 +82,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void ConnectTask()
     {
+        LogError("Starting ConnectTask...", 0.5f);
         if (IsTaskRunning) return;
         if (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
         {
@@ -133,10 +134,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             if (!IsTaskRunning && Settings.Party.ConnectClient)
                 ConnectTask();
-            if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
-            {
-              
 
+            if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
+            {             
                 FollowerBehavior();
             }
         }
