@@ -331,9 +331,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     //LogMessage($"Attempting to follow portal: {portal.RenderName}, attempts left: {maxtattempts}");
 
+                    MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
                     // Check visible + click
-                    bool isSuccess = (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading);
+                    bool isSuccess = (this.GetBuffs().Any(b => b.Name.Equals("grace_period")));
                     if (/*/*!Settings.Party.UseInputManager & screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal*/ !isSuccess)
                     {
                         var portalPos = GameController.IngameState.Data.GetWorldScreenPosition(portal.BoundsCenterPosNum);
@@ -344,13 +345,21 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         LogError($"Portal visible on screen: {portal.RenderName}, clicking at position: {screenPos}", 100);
                         Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
                         Input.Click(MouseButtons.Left);
-                        Thread.Sleep(800); // plus réaliste que 20ms
-                        continue;
+                        if(MyTarget == portal)
+                        {
+                            LogMessage($"Clicked on portal  break mofo: {portal.RenderName}", 100);
+                            break;
+                        }
+                        else
+                        {
+                            Thread.Sleep(100);
+                            continue;
+                        }
+                          
                     }
 
                     PartyLeader.LastTargetedPortalOrTransition = null;
 
-                    MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
                     // Condition de sortie plus fiable
                    
