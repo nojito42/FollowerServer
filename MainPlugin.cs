@@ -157,7 +157,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogMessage($"Current Target: {currentTarget.RenderName} - Type: {currentTarget.Type} - Distance: {currentTarget.DistancePlayer}");
         }
       
-        SetLeader();
+        if(SetLeader() == false)
+        {
+            LogError("Failed to set leader. Please check your party settings.");
+            return null;
+        }
 
         if (Settings.Server.ToggleLeaderServer.Value)
         {
@@ -437,19 +441,15 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     if (this.GetBuffs().Any(b => b.Name.Contains(crySkill.InternalName)))
                     {
-                        LogError($"Cry Skill {crySkill.InternalName} is already active, skipping.");
                         continue;
                     }
                     else if (GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost)
                     {
-                        LogError($"Not enough mana to use Cry Skill: {crySkill.InternalName}, skipping.");
                         continue;
                     }
                     this.TryDoAction(() =>
                     {
-                        LogError($"Using Cry Skill: {crySkill.Name} {crySkill.SkillSlotIndex}");
                         var scs = Shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
-
                         scs.PressShortCut(1);
                     });
                 }
@@ -606,16 +606,16 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
     }
 
-    public void SetLeader()
+    public bool SetLeader()
     {
         var pt = GameController.Party();
         if (pt == null)
-            return;
+            return false;
         Settings.Party.LeaderSelect.SetListValues(pt.ToList().Select(m => m.PlayerName.ToString()).ToList());
 
         var leaderElement = pt.FirstOrDefault(x => x.PlayerName == Settings.Party.LeaderSelect);
         if (leaderElement == null)
-            return;
+            return false;
 
         PartyLeader = new Leader
         {
@@ -623,6 +623,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             Element = leaderElement,
             LastTargetedPortalOrTransition = null
         };
+        return true;
     }
     private void ServerTickForLeaderBroadcast()
     {
