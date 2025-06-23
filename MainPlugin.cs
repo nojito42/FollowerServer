@@ -98,9 +98,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             return;
         }
+        PartyServer = new PartyServer(this);
+        LogMessage("Starting connection task to party server...", 0.5f);
         _ = Task.Run(async () =>
     {
-        LogError("Starting ConnectTask...", 0.5f);
 
         while (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
 
