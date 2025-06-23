@@ -80,33 +80,32 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         return true;
     }
-    private void ConnectTask()
-    {
-        LogError("Starting ConnectTask...", 0.5f);
-        if (IsTaskRunning) return;
-        if (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
-        {
-            _ = Task.Run(async () =>
-        {
+    //private void ConnectTask()
+    //{
+    //    LogError("Starting ConnectTask...", 0.5f);
+    //    if (IsTaskRunning) return;
+       
+    //        _ = Task.Run(async () =>
+    //    {
            
-            while (Settings.Party.ConnectClient && (PartyClient == null))
+    //        while (Settings.Party.ConnectClient && (PartyClient == null))
 
-            {
-                if (GameController.Party().ChildCount <= 0)
-                    continue;
+    //        {
+    //            if (GameController.Party().ChildCount <= 0)
+    //                continue;
 
-                LogMessage("Attempting to reconnect to party server...", 0.5f);
+    //            LogMessage("Attempting to reconnect to party server...", 0.5f);
 
-                if (PartyClient == null)
-                    PartyClient = new PartyClient(this);
-                else
-                    ConnectToPartyServer();
-                await Task.Delay(1000);
-            }
-        });
-            IsTaskRunning = false;
-        }
-    }
+    //            if (PartyClient == null)
+    //                PartyClient = new PartyClient(this);
+    //            else
+    //                ConnectToPartyServer();
+    //            await Task.Delay(1000);
+    //        }
+    //    });
+    //        IsTaskRunning = false;
+        
+    //}
     private void ConnectToPartyServer()
     {
         if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
