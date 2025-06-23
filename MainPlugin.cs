@@ -377,7 +377,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void ManageLeaderOnSameMap()
     {
-        var leaderEntity = PartyLeader.Element.Entity;
+        var leaderEntity = PartyLeader.Entity;
         var playerEntity = GameController.Player;
         SetLocalSkillsAndShortCuts();
         if (leaderEntity != null)
