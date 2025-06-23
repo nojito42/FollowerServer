@@ -649,22 +649,22 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     #region DisposeClose
     public override void Dispose()
     {
-        DisconnectWithMessage("Disposing FollowerPlugin.");
+        this.DisconnectWithMessage("Disposing FollowerPlugin.");
         base.Dispose();
     }
     public override void OnClose()
     {
-        DisconnectWithMessage("Closing FollowerPlugin.");
+        this.DisconnectWithMessage("Closing FollowerPlugin.");
         base.OnClose();
     }
     public override void OnPluginDestroyForHotReload()
     {
-        DisconnectWithMessage("Destroying FollowerPlugin for hot reload.");
+        this.DisconnectWithMessage("Destroying FollowerPlugin for hot reload.");
         base.OnPluginDestroyForHotReload();
     }
     public override void OnUnload()
     {
-        DisconnectWithMessage("Unloading FollowerPlugin.");
+        this.DisconnectWithMessage("Unloading FollowerPlugin.");
         base.OnUnload();
     }
   
