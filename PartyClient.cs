@@ -148,6 +148,9 @@ public class PartyClient(MainPlugin plugin)
             }
             
             _plugin.LogError("Déconnecté du serveur.");
+            _stream = null;
+            _client = null;
+            _plugin.IsTaskRunning = false;
         }
     }
     private void ProcessLeaderInput(LeaderInput input)

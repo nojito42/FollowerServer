@@ -24,7 +24,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public List<PlayerSkill> LocalPlayerSkills { get; set; } = [];
 
 
-    bool IsTaskRunning = false;
+    public bool IsTaskRunning = false;
     public Leader Leader { get; private set; }
     public PlayerSkill MoveSkill => LocalPlayerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
     public PlayerSkill AttackSkill => LocalPlayerSkills.FirstOrDefault(x => x.Skill.Skill.IsAttack || x.Skill.Skill.IsSpell);
