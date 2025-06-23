@@ -82,13 +82,18 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void ConnectTask()
     {
+        if (IsTaskRunning) return;
         if (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
         {
             _ = Task.Run(async () =>
         {
-            while (Settings.Party.ConnectClient && (PartyClient == null || !PartyClient.IsConnected) && IsTaskRunning)
+           
+            while (Settings.Party.ConnectClient && (PartyClient == null))
 
             {
+                if (GameController.Party().ChildCount <= 0)
+                    continue;
+
                 LogMessage("Attempting to reconnect to party server...", 0.5f);
 
                 if (PartyClient == null)
