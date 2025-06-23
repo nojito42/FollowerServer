@@ -38,6 +38,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
     public override bool Initialise()
     {
+        IsTaskRunning = false;
         var mem = GameController.Memory;
         var sc = GameController.IngameState.ShortcutSettings.Shortcuts;
         Shortcuts = GameController.IngameState.ShortcutSettings.Shortcuts;// sc3;
