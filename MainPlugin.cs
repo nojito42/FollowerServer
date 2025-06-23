@@ -150,8 +150,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override Job Tick()
     {
+        var currentTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
-        LogMessage("FollowerPlugin Tick", 0.5f);
+        if(currentTarget != null)
+        {
+            LogMessage($"Current Target: {currentTarget.RenderName} - Type: {currentTarget.Type} - Distance: {currentTarget.DistancePlayer}");
+        }
+      
         SetLeader();
 
         if (Settings.Server.ToggleLeaderServer.Value)
@@ -305,59 +310,67 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             int maxtattempts = 50;
             var portal = PartyLeader.LastTargetedPortalOrTransition;
 
-            do
+            // Première tentative d'action
+            var portalPosition = portal.BoundsCenterPosNum;
+            var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
+
+            if (Settings.Party.UseInputManager)
             {
-                var portalPosition = portal.BoundsCenterPosNum;
-                var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
-
-                if (Settings.Party.UseInputManager)
+                this.TryDoAction(() =>
                 {
-                    this.TryDoAction(() =>
-                    {
-                        var castWithTarget = GameController.PluginBridge
-                            .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
-                        castWithTarget(portal, 0x400);
-                    });
-                    Thread.Sleep(100);
-
-                    break;
+                    var castWithTarget = GameController.PluginBridge
+                        .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
+                    castWithTarget(portal, 0x400);
+                });
+                Thread.Sleep(100); // petit délai pour laisser l'action se lancer
+            }
+            else
+            {
+                // On clique une seule fois s'il est visible et ciblable
+                if (screenPos != Vector2.Zero &&
+                    GameController.Window.GetWindowRectangle().Contains(screenPos) &&
+                    GameController.IngameState.UIHover != null &&
+                    GameController.IngameState.UIHover.Entity == portal)
+                {
+                    Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
+                    Input.SetCursorPos(screenPos);
+                    Input.Click(MouseButtons.Left);
+                    Thread.Sleep(200);
                 }
-
-
                 else
                 {
+                    LogError($"Portal not visible on screen: {portal.RenderName}, aborting");
+                    return;
+                }
+            }
 
+            // Maintenant, on arrête les actions et on attend que le portail soit quitté ou loading
+            while (maxtattempts-- > 0)
+            {
+                MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
-                    // Check visible + click
-                    if (!Settings.Party.UseInputManager && screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
-                    {
-                        Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
-                        Input.SetCursorPos(screenPos);
-                        Input.Click(MouseButtons.Left);
-                        Thread.Sleep(800); // plus réaliste que 20ms
-                    }
-                    else
-                    {
-                        LogError($"Portal not visible on screen: {portal.RenderName}, attempts left: {maxtattempts}", 100);
-                    }
-
-                    MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
-
-                    // Condition de sortie plus fiable
-                    bool isSuccess = (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading);
-                    if (isSuccess)
-                    {
-                        LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
-                        PartyLeader.LastTargetedPortalOrTransition = null;
-                        Thread.Sleep(800); // attendre un peu pour laisser le temps de charger
-                        return;
-                    }
-
-                    LogError($"Attempt failed. Attempts left: {maxtattempts}");
-                    maxtattempts--;
+                if (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading)
+                {
+                    LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
+                    PartyLeader.LastTargetedPortalOrTransition = null;
+                    Thread.Sleep(800);
+                    return;
                 }
 
-            } while (maxtattempts > 0);
+                if (MyTarget != portal)
+                {
+                    LogMessage("Portal action completed, player is no longer targeting it.", 100);
+                    PartyLeader.LastTargetedPortalOrTransition = null;
+                    Thread.Sleep(800);
+                    return;
+                }
+
+                Thread.Sleep(100); // petite pause entre les vérifications
+            }
+
+            PartyLeader.LastTargetedPortalOrTransition = null;
+            LogError("Failed to follow portal after all attempts");
+
 
             // Si on arrive ici, échec
             PartyLeader.LastTargetedPortalOrTransition = null;
