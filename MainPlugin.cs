@@ -200,12 +200,14 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.IsSameZone} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
 
-        return;
-        return;
+        if(PartyLeader == null)
+            return;
+       
+       
         // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
         if (GameController.Area.CurrentArea.IsHideout && (!PartyLeader.IsSameZone))
         {
-            LogMessage($"Leader {PartyLeader.Name} is in a different map.");
+            LogMessage($"cas 1 : en hidout et le leader est surment en map ou ailleurs? ");
 
             if (Settings.Party.Follow)
             {
@@ -261,11 +263,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
             }
         }
-        //cas 5 : Leader n'est pas du tout sur la même map
+        //cas 2 : Leader n'est pas du tout sur la même map
 
-        else if (/*PartyLeader != null && */(PartyLeader.Entity == null || PartyLeader.Element.ZoneName != GameController.Area.CurrentArea.Name) && GameController.Area.CurrentArea.IsHideout == false)
+        if (/*PartyLeader != null && */(PartyLeader.Entity == null || !PartyLeader.IsSameZone == false) && GameController.Area.CurrentArea.IsHideout == false)
         {
-            if (GameController.IsLoading) return;
+            LogMessage($"cas 2 : Leader n'est pas du tout sur la même map, on va essayer de le suivre");
 
             var ui = GameController.IngameState.IngameUi;
             var leaderTpElement = /*Leader.Element.Children?[3]*/ ui.PartyElement.PlayerElements.Find(e => e.PlayerName == Settings.Party.LeaderSelect)?.TeleportButton;
@@ -294,9 +296,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
             }
         }
-        // Cas 2 : Leader est sur la même map et utilise une transition ou un portail
-        else if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+        // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
+         if (/*Leader != null && */PartyLeader.IsSameZone && PartyLeader.Entity != null && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
+            LogMessage($"Cas 3 : Leader est sur la même map et utilise une transition ou un portail: {leaderActor.CurrentAction?.Target?.RenderName}", 0.5f);
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
             {
@@ -304,10 +307,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
 
-        // Cas 3 : Le leader vient de prendre un portail et on le suit
-        else if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
+        // Cas 4 : Le leader vient de prendre un portail et on le suit
+        if (/*PartyLeader != null && */PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.Element.ZoneName == GameController.Area.CurrentArea.Name)
         {
+            LogMessage($"Cas 4 : Le leader vient de prendre un portail et on le suit: {PartyLeader.LastTargetedPortalOrTransition.RenderName}", 0.5f);
             Entity MyTarget = null;
             int maxtattempts = 50;
             var portal = PartyLeader.LastTargetedPortalOrTransition;
@@ -373,7 +377,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
 
-        // Cas 4 : fallback si rien d’autre ne s’est passé, gérer comportement normal
+        // Cas 5 : fallback si rien d’autre ne s’est passé, gérer comportement normal
+        LogMessage("Cas 5 : fallback, gérer comportement normal", 0.5f);
         ManageLeaderOnSameMap();
 
 
