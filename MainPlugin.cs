@@ -140,8 +140,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     private void FollowerBehavior()
     {
         LogMessage("FollowerBehavior Tick", 0.5f);
+        SetLeader();
         if(Leader == null)
         {
+            
             LogMessage("Leader is not set, skipping follower behavior.");
             return;
         }
