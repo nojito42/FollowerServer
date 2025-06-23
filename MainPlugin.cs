@@ -224,7 +224,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (PartyLeader != null && PartyLeader.Entity != null && PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.IsSameZone)
         {
-            Entity MyTarget = null;
             var portal = PartyLeader.LastTargetedPortalOrTransition;
 
             // Première tentative d'action
@@ -263,8 +262,9 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
             DateTime startTime = DateTime.Now;
             // Maintenant, on arrête les actions et on attend que le portail soit quitté ou loading
-            while (MyTarget != portal )
+            while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target != portal )
             {
+                var MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
                 // Fix for the line causing multiple errors
                 if ((DateTime.Now - startTime).TotalSeconds > 5)
                 {
