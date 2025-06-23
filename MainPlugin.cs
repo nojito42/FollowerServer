@@ -227,7 +227,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         this.TryDoAction(() =>
                         {
                             var castWithTarget = GameController.PluginBridge
-                                .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
+                                .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
                             castWithTarget(firstTP, 0x400);
                         });
                         return;
@@ -318,7 +318,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     this.TryDoAction(() =>
                     {
                         var castWithTarget = GameController.PluginBridge
-                            .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
+                            .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
                         castWithTarget(portal, 0x400);
                     });
                     Thread.Sleep(100);
@@ -459,7 +459,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             this.TryDoAction(() =>
                             {
                                 var castWithPos = GameController.PluginBridge
-                                    .GetMethod<Action<Vector2i, uint>>("MagicInput2.CastSkillWithPosition");
+                                    .GetMethod<Action<Vector2i, uint>>("MagicInput.CastSkillWithPosition");
                                 castWithPos(lastNode, 0x400);
                             });
                         }
@@ -484,7 +484,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                             this.TryDoAction(() =>
                             {
                                 var castWithTarget = GameController.PluginBridge
-                                    .GetMethod<Action<Entity, uint>>("MagicInput2.CastSkillWithTarget");
+                                    .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
                                 castWithTarget(leaderEntity, 0x400);
                             });
                         }
