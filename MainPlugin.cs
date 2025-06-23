@@ -340,7 +340,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 else
                 {
-
+                    LogMessage($"Attempting to follow portal: {portal.RenderName}, attempts left: {maxtattempts}");
 
                     // Check visible + click
                     if (!Settings.Party.UseInputManager && screenPos != Vector2.Zero && GameController.Window.GetWindowRectangle().Contains(screenPos) && GameController.IngameState.UIHover != null && GameController.IngameState.UIHover.Entity == portal)
