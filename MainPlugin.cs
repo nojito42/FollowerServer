@@ -93,6 +93,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         IsTaskRunning = true;
 
+
+      if(PartyClient != null && PartyClient.IsConnected)
+        {
+            return;
+        }
         _ = Task.Run(async () =>
     {
         LogError("Starting ConnectTask...", 0.5f);
@@ -112,7 +117,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             await Task.Delay(1000);
         }
     });
-        LogError("task ended", 0.5f);
+        LogError("task ended", 1.0f);
         IsTaskRunning = false;
 
     }
