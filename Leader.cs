@@ -23,7 +23,7 @@ public abstract class PartyMember
     public bool IsSameZone => (bool)!Info?.IsInDifferentZone;
     //public string CurrentArea => Element?.ChildCount == 4 ? Element.Children[2].Text : Core.Current.GameController.Area.CurrentArea.Name;
     public Entity Entity => Core.Current.GameController.Entities
-        .FirstOrDefault(e => e.IsValid && e.GetComponent<Player>().PlayerName == Name);
+        .FirstOrDefault(e => e != null && e.IsValid && e.GetComponent<Player>().PlayerName == Name);
     public List<PlayerSkill> Skills { get; set; } = [];
 
 }
