@@ -3,7 +3,6 @@ using ExileCore;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using Vector3 = System.Numerics.Vector3;
 using System.Numerics;
 using FollowerPlugin;
 using ExileCore.Shared.Enums;
@@ -13,17 +12,12 @@ using GameOffsets.Native;
 using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
-using ExileCore.Shared.Interfaces;
 using System.Threading.Tasks;
-using System.Diagnostics.Eventing.Reader;
-using ExileCore.PoEMemory;
 namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
     public List<PlayerSkill> LocalPlayerSkills { get; set; } = [];
-
-
     public bool IsTaskRunning = false;
     public Leader PartyLeader { get; private set; }
     public PlayerSkill MoveSkill => LocalPlayerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
@@ -31,7 +25,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     DateTime lastMoveCheck = DateTime.Now;
     float lastMoveDelayMS = 20f; //ms
     public IList<Shortcut> Shortcuts { get; set; }
-
     public PartyServer PartyServer { get; set; }
     public PartyClient PartyClient { get; set; }
     public DateTime LastLeaderInput { get; set; } = DateTime.Now;
@@ -152,41 +145,27 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         var currentTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
-        if (currentTarget != null)
-        {
+        if (currentTarget != null)      
             LogMessage($"Current Target: {currentTarget.RenderName} - Type: {currentTarget.Type} - Distance: {currentTarget.DistancePlayer}");
-        }
-
         if (SetLeader() == false)
-        {
-            LogError("Failed to set leader. Please check your party settings.");
-            return null;
-        }
-
+           return null;       
         if (Settings.Server.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
                 ServerTickForLeaderBroadcast();
         }
-
         else
         {
             if (!IsTaskRunning && Settings.Party.ConnectClient)
                 ConnectTask();
-
             if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
-            {
-
-                SetLeader();
                 FollowerBehavior();
-            }
         }
         return null;
     }
     private void FollowerBehavior()
     {
-
-
+        SetLeader();
         SetLocalSkillsAndShortCuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
         {
@@ -211,24 +190,15 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             var t = leaderActor.CurrentAction?.Target;
             if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
-            {
-                LogMessage($"Cas 3 : Leader est sur la même map et utilise une transition ou un portail: {leaderActor.CurrentAction?.Target?.RenderName}", 0.5f);
-
                 PartyLeader.LastTargetedPortalOrTransition = t;
-            }
         }
-
         // Cas 3 : Le leader vient de prendre un portail et on le suit
         if (PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.IsSameZone)
         {
             var portal = PartyLeader.LastTargetedPortalOrTransition;
-
-            // Première tentative d'action
             var portalPosition = portal.BoundsCenterPosNum;
             var screenPos = GameController.IngameState.Data.GetWorldScreenPosition(portalPosition);
-
-
             this.TryDoAction(() =>
             {
                 var castWithTarget = GameController.PluginBridge
@@ -236,7 +206,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 castWithTarget(portal, 0x400);
             });
             DateTime startTime = DateTime.Now;
-            // Maintenant, on arrête les actions et on attend que le portail soit quitté ou loading
             while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target == portal || this.GetBuffs().Any(b => b.Name.Equals("grace_period")))
             {
                 var MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
@@ -269,12 +238,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 Thread.Sleep(100); // petite pause entre les vérifications
             }
-
-            PartyLeader.LastTargetedPortalOrTransition = null;
-            LogError("Failed to follow portal after all attempts");
-
-
-            // Si on arrive ici, échec
             PartyLeader.LastTargetedPortalOrTransition = null;
             LogError("Failed to follow portal after all attempts");
             return;
@@ -398,19 +361,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     });
                 }
             }
-            if (leaderEntity.DistancePlayer > Settings.Party.LeaderMaxDistance.Value)
-            {
-                ReleaseKeys();
-            }
-
-            else if (leaderEntity.DistancePlayer > Settings.Party.KeepLeaderInRange.Value && Settings.Party.Follow)
+            if (leaderEntity.DistancePlayer > Settings.Party.KeepLeaderInRange.Value && Settings.Party.Follow)
             {
                 var moveSkill = MoveSkill;
                 var playeraction = playerEntity.GetComponent<Actor>().Action;
-
                 bool playerisattacking = playeraction == ActionFlags.UsingAbility;
                 lastMoveDelayMS = playerisattacking ? 250f : 20f;
-
                 if (moveSkill != null)
                 {
                     if (lastMoveCheck.AddMilliseconds(lastMoveDelayMS) >= DateTime.Now)
@@ -428,8 +384,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                                 .GetMethod<Action<Vector2i, uint>>("MagicInput.CastSkillWithPosition");
                             castWithPos(lastNode, 0x400);
                         });
-
-
                     }
                     else if (!playerisattacking && playerEntity.DistancePlayer <= Settings.Party.KeepLeaderInRange.Value)
                     {
@@ -464,21 +418,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     Input.KeyUp((Keys)MoveSkill.Shortcut.MainKey);
                 }
-                ReleaseKeys();
             }
         }
-    }
-    private void ReleaseKeys()
-    {
-        if (MoveSkill != null && Input.IsKeyDown((Keys)MoveSkill.Shortcut.MainKey))
-        {
-            Input.KeyUp((Keys)MoveSkill.Shortcut.MainKey);
-        }
-        else if (AttackSkill != null && Input.IsKeyDown((Keys)AttackSkill.Shortcut.MainKey))
-        {
-            Input.KeyUp((Keys)AttackSkill.Shortcut.MainKey);
-        }
-
     }
     private void SetLocalSkillsAndShortCuts()
     {
@@ -520,7 +461,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         }
     }
-
     public bool SetLeader()
     {
         var pt = GameController.Party();
@@ -667,6 +607,5 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         this.DisconnectWithMessage("Unloading FollowerPlugin.");
         base.OnUnload();
     }
-  
     #endregion
 }
