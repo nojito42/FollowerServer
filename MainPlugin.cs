@@ -178,7 +178,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void FollowerBehavior()
     {
-        LogMessage("FollowerBehavior Tick");
 
 
         SetLocalSkillsAndShortCuts();
@@ -199,11 +198,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             LogMessage(" is in grace period, skipping behaviors for now.");
             return;
         }
-        LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.Element.ZoneName} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
+        LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.IsSameZone} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
 
 
         // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
-        if (GameController.Area.CurrentArea.IsHideout && (!PartyLeader.IsSameZone || PartyLeader.Entity == null))
+        if (GameController.Area.CurrentArea.IsHideout && (!PartyLeader.IsSameZone))
         {
             LogMessage($"Leader {PartyLeader.Name} is in a different map.");
 
