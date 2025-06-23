@@ -709,6 +709,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         PartyClient = null;
         PartyServer?.Stop();
         PartyServer = null;
+        IsTaskRunning = false;
     }
     #endregion
 }
