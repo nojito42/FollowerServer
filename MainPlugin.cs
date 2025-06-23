@@ -215,6 +215,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 }
                 else
                 {
+                    if (Leader == null)
+                        SetLeader();
                     var leaderTpElement = Leader.Element.Children?[3];
                     if (leaderTpElement?.IsActive == true)
                     {
