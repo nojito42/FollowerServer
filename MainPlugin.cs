@@ -410,7 +410,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             else if (leaderEntity.DistancePlayer <= Settings.Party.KeepLeaderInRange.Value)
             {
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount == 3).FirstOrDefault();
-                if (opt != null && opt[2] != null && opt[2].IsVisible && GameController.Window.GetWindowRectangleTimeCache.Contains(opt.GetClientRect().Center))
+                if (opt != null && opt[2] != null && opt[2].IsVisible && GameController.Window.GetWindowRectangleTimeCache.Contains(opt[2].GetClientRect().Center))
                 {
                     LogError($"Found item on ground: {opt}", 100);
                     var screenPos = opt[2].GetClientRect().Center.ToVector2Num();
