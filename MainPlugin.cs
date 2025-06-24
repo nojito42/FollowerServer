@@ -410,7 +410,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             else if (leaderEntity.DistancePlayer <= Settings.Party.KeepLeaderInRange.Value)
             {
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.LabelsOnGroundVisible.Where(c => c.ToString().Contains("MetaData/Monsters/Mercenaries")).FirstOrDefault();
-                if (opt != null && opt != null && opt.IsVisible)
+                if (opt != null)
                 {
                     LogError($"Found item on ground: {opt} {opt.ItemOnGround.DistancePlayer} {opt.Label[2]}");
                     var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
