@@ -417,7 +417,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     if (opt.Label.ChildCount == 3 && opt.Label[2].IsVisible && dist <= 35)
                     {
                         var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
-                        Graphics.DrawFrame(opt.Label.GetClientRect(), SharpDX.Color.Red, 1);
+                        Graphics.DrawFrame(opt.Label[2].GetClientRect(), SharpDX.Color.Red, 1);
                          
                         Input.SetCursorPos(opt.Label[2].GetClientRect().Center.ToVector2Num());
                         Thread.Sleep(20);
