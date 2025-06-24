@@ -412,17 +412,25 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.LabelsOnGroundVisible.Where(c => c.ItemOnGround.Metadata.Contains("Metadata/Monsters/Mercenaries")).FirstOrDefault();
                 if (opt != null)
                 {
-                    LogError($"Found item on ground: {opt} {opt.ItemOnGround.DistancePlayer} {opt.Label.ChildCount}");
-                    var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
-                    Graphics.DrawBox(opt.Label.GetClientRect(), SharpDX.Color.Red);
-                    Input.SetCursorPos(screenPos);
-                    Thread.Sleep(20);
-                    Input.Click(MouseButtons.Left);
-                    Thread.Sleep(100);
+                    var dist = opt.ItemOnGround.DistancePlayer;
+                    LogError($"Found item on ground: {opt} {dist} {opt.Label.ChildCount}");
+                    if (opt.Label.ChildCount == 3 && opt.Label[2].IsVisible && dist > 20)
+                    {
+                        var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
+                        Graphics.DrawFrame(opt.Label.GetClientRect(), SharpDX.Color.Red, 1);
+                        Input.SetCursorPos(screenPos);
+                        Thread.Sleep(20);
+                        Input.Click(MouseButtons.Left);
+                        Thread.Sleep(100);
+                    }
+                    else
+                    {
+                        LogError("Item on ground label does not have the expected child count or visibility.");
+                    }
 
                 }
                 else
-                    LogError("No items on ground found.", 100);
+                    LogError("opt == nujll", 100);
 
                 if (Input.IsKeyDown((Keys)MoveSkill.Shortcut.MainKey))
                 {
