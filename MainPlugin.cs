@@ -100,8 +100,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     public override void AreaChange(AreaInstance area)
     {
-      
-
         base.AreaChange(area);
     }
     private void ConnectTask()
