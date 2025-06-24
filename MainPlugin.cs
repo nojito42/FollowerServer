@@ -409,12 +409,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
             else if (leaderEntity.DistancePlayer <= Settings.Party.KeepLeaderInRange.Value)
             {
-                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement[0].Children.Where(c => c.ChildCount == 3).FirstOrDefault();
-                if (opt != null && opt[2] != null && opt[2].IsVisible)
+                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.LabelsOnGroundVisible.Where(c => c.ToString().Contains("MetaData/Monsters/Mercenaries")).FirstOrDefault();
+                if (opt != null && opt != null && opt.IsVisible)
                 {
-                    LogError($"Found item on ground: {opt} {Vector2.Distance(opt.PositionNum,GameController.Player.GridPosNum)}");
-                    var screenPos = opt[2].GetClientRect().Center.ToVector2Num();
-                    Graphics.DrawBox(new SharpDX.RectangleF(screenPos.X - 25, screenPos.Y - 25, 50, 50), SharpDX.Color.Red);
+                    LogError($"Found item on ground: {opt} {opt.ItemOnGround.DistancePlayer} {opt.Label[2]}");
+                    var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
+                    Graphics.DrawBox(opt.Label.GetClientRect(), SharpDX.Color.Red);
                     Input.SetCursorPos(screenPos);
                     Thread.Sleep(20);
                     Input.Click(MouseButtons.Left);
