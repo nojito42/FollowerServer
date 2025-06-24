@@ -608,6 +608,21 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
               
             }
         }
+        else if (Settings.Party.ConnectClient && PartyClient != null && PartyClient.IsConnected)
+        {
+
+           var leaderBox = PartyLeader?.Element?.GetClientRect();
+            if (PartyLeader != null && leaderBox.Value.Top > 0.0f)
+            {
+                Graphics.DrawFrame(leaderBox.Value, SharpDX.Color.Yellow, 2);
+                Graphics.DrawText($"Leader: {PartyLeader.Name}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20), SharpDX.Color.Yellow);
+            }
+            else
+            {
+                LogMessage("Leader box is null or invalid.", 100);
+            }
+            Graphics.DrawText($"Connected to party server at {Settings.Party.ServerIP}", new Vector2(100, 100));          
+        }
     }
     #region DisposeClose
     public override void Dispose()
