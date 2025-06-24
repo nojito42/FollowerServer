@@ -414,7 +414,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 {
                     var dist = opt.ItemOnGround.DistancePlayer;
                     LogError($"Found item on ground: {opt} {dist} {opt.Label.ChildCount}");
-                    if (opt.Label.ChildCount == 3 && opt.Label[2].IsVisible && dist <= 35)
+                    if (opt.Label.ChildCount == 3 && opt.Label[2].IsVisible && dist <= 20)
                     {
                         var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
                         Graphics.DrawFrame(opt.Label[2].GetClientRect(), SharpDX.Color.Red, 1);
