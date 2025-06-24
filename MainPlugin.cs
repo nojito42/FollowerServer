@@ -418,7 +418,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     {
                         var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
                         Graphics.DrawFrame(opt.Label.GetClientRect(), SharpDX.Color.Red, 1);
-                        Input.SetCursorPos(screenPos);
+                        opt.Label[2].GetClientRect().ClickRandomNum();
                         Thread.Sleep(20);
                         Input.Click(MouseButtons.Left);
                         Thread.Sleep(100);
