@@ -612,7 +612,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
            var leaderBox = PartyLeader?.Element?.GetClientRect();
             if (PartyLeader != null && leaderBox.Value.Top > 0.0f)
             {
-                Graphics.DrawFrame(leaderBox.Value, SharpDX.Color.Yellow, 2);
+                Graphics.DrawFrame(leaderBox.Value, SharpDX.Color.Green, 2);
                 Graphics.DrawText($"Connected: {Settings.Party.ServerIP.Value}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20), SharpDX.Color.Green);
             }
            
