@@ -412,7 +412,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.LabelsOnGroundVisible.Where(c => c.ToString().Contains("MetaData/Monsters/Mercenaries")).FirstOrDefault();
                 if (opt != null)
                 {
-                    LogError($"Found item on ground: {opt} {opt.ItemOnGround.DistancePlayer} {opt.Label[2]}");
+                    LogError($"Found item on ground: {opt} {opt.ItemOnGround.DistancePlayer} {opt.Label.ChildCount}");
                     var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
                     Graphics.DrawBox(opt.Label.GetClientRect(), SharpDX.Color.Red);
                     Input.SetCursorPos(screenPos);
