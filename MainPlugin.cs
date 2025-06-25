@@ -362,6 +362,11 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         .ToList();
                     foreach (var crySkill in crySkills)
                     {
+                        if(PartyLeader.Entity.DistancePlayer > 20)
+                        {
+                            LogMessage($"Leader is too far away ({PartyLeader.Entity.DistancePlayer} > {Settings.Party.KeepLeaderInRange.Value}), skipping cry skill: {crySkill.Name}");
+                            break;
+                        }
                         if (this.GetBuffs().Any(b => b.Name.Contains(crySkill.InternalName)))
                         {
                             continue;
