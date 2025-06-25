@@ -349,24 +349,33 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
             if (Settings.Party.UseCriesAuto && leaderEntity.DistancePlayer < 20 && (GameController.Area.CurrentArea.IsHideout == false && GameController.Area.CurrentArea.IsTown == false))
             {
-                var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
-                    .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false)
-                    .ToList();
-                foreach (var crySkill in crySkills)
+
+                if (GameController.Player.GetComponent<Actor>().Action == ActionFlags.Moving && Settings.Party.OnlyCryWhenIdle)
                 {
-                    if (this.GetBuffs().Any(b => b.Name.Contains(crySkill.InternalName)))
+                    LogMessage("Player is moving, skipping cries auto usage.");
+
+                }
+                else
+                {
+                    var crySkills = GameController.Player.GetComponent<Actor>().ActorSkills
+                        .Where(x => x.IsCry && x.IsOnSkillBar && x.IsOnCooldown == false)
+                        .ToList();
+                    foreach (var crySkill in crySkills)
                     {
-                        continue;
+                        if (this.GetBuffs().Any(b => b.Name.Contains(crySkill.InternalName)))
+                        {
+                            continue;
+                        }
+                        else if (GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost)
+                        {
+                            continue;
+                        }
+                        this.TryDoAction(() =>
+                        {
+                            var scs = Shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
+                            scs.PressShortCut(1);
+                        });
                     }
-                    else if (GameController.Player.GetComponent<Life>().CurMana < crySkill.Cost)
-                    {
-                        continue;
-                    }
-                    this.TryDoAction(() =>
-                    {
-                        var scs = Shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
-                        scs.PressShortCut(1);
-                    });
                 }
             }
             if (leaderEntity.DistancePlayer > Settings.Party.KeepLeaderInRange.Value && Settings.Party.Follow)

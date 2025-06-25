@@ -41,6 +41,7 @@ public class PartySubMenu
     public ToggleNode FollowInTown { get; set; } = new ToggleNode(false);
     public ToggleNode UseSmartTPSkill { get; set; } = new ToggleNode(true);
     public ToggleNode UseCriesAuto { get; set; } = new ToggleNode(true);
+    public ToggleNode OnlyCryWhenIdle { get; set; } = new ToggleNode(true);
     public RangeNode<int> screenOffsetAdjustementX { get; set; } = new RangeNode<int>(0, -200, 200);
     public RangeNode<int> screenOffsetAdjustementY { get; set; } = new RangeNode<int>(0, -200, 200);
 
