@@ -568,18 +568,18 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
            ;
         };
-        Settings.Enable.OnValueChanged += (foe, ar) =>
-        {
-            if (ar)
-            {
-                LogMessage("FollowerPlugin enabled.", 0.5f);
-            }
-            else
-            {
-                LogMessage("FollowerPlugin disabled.", 0.5f);
-                this.DisconnectWithMessage("FollowerPlugin has been disabled. Disconnecting from party server.");
-            }
-        };
+        //Settings.Enable.OnValueChanged += (foe, ar) =>
+        //{
+        //    if (ar)
+        //    {
+        //        LogMessage("FollowerPlugin enabled.", 0.5f);
+        //    }
+        //    else
+        //    {
+        //        LogMessage("FollowerPlugin disabled.", 0.5f);
+        //        this.DisconnectWithMessage("FollowerPlugin has been disabled. Disconnecting from party server.");
+        //    }
+        //};
         ToggleLeaderServer();
         if (IsTaskRunning == false && Settings.Party.ConnectClient)
             ConnectTask();
@@ -665,7 +665,14 @@ public static class ServerClientExtensions
         {
             while (p.Settings.Party.ConnectClient && p.Settings.Enable &&  p.PartyClient?.IsConnected == false )
             {
-               
+                if(p.Settings.Enable == false)
+                {
+                    p.LogMessage("FollowerPlugin is disabled, stopping connection task.", 0.5f);
+                    p.DisconnectWithMessage("FollowerPlugin is disabled, stopping connection task.");
+                    p.IsTaskRunning = false;
+                    break;
+                }
+
                 if (p.GameController.Party().Count > 0)
                 {
                         p.ConnectToPartyServer();
