@@ -197,7 +197,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (PartyLeader.IsSameZone && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
         {
             var t = leaderActor.CurrentAction?.Target;
-            if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal))
+            if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal || t.Metadata.Equals("Metadata/Terrain/Leagues/Harvest/Objects/HarvestPortalToggleableReverse")))
                 PartyLeader.LastTargetedPortalOrTransition = t;
         }
         // Cas 3 : Le leader vient de prendre un portail et on le suit
