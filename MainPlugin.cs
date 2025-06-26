@@ -663,7 +663,7 @@ public static class ServerClientExtensions
         p.LogMessage("Starting connection task to party server...", 0.5f);
         _ = Task.Run(async () =>
         {
-            while (p.Settings.Party.ConnectClient &&  p.PartyClient?.IsConnected == false)
+            while (p.Settings.Party.ConnectClient && p.Settings.Enable &&  p.PartyClient?.IsConnected == false )
             {
                
                 if (p.GameController.Party().Count > 0)

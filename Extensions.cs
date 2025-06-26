@@ -76,12 +76,10 @@ public static class FollowerPluginExtensions
         act();
         return true;
     }
-
     public static List<Buff> GetBuffs(this MainPlugin p)
     {
         return p.GameController.Player.Buffs;
     }
-
     public static void DisconnectWithMessage(this MainPlugin p, string message)
     {
         p.LogError(message, 5);

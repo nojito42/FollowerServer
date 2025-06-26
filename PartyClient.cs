@@ -230,8 +230,6 @@ public class PartyClient(MainPlugin plugin)
         }
     }
 
-
-
     public void Disconnect()
     {
         if (_client != null)
