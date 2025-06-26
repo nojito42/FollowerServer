@@ -18,8 +18,9 @@ namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
+    #region Variables
     public List<PlayerSkill> LocalPlayerSkills { get; set; } = [];
-    public bool IsTaskRunning = false;
+    public bool IsTaskRunning { get; set; } = false;
     public Leader PartyLeader { get; private set; }
     public PlayerSkill MoveSkill => LocalPlayerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
     public PlayerSkill AttackSkill => LocalPlayerSkills.FirstOrDefault(x => x.Skill.Skill.IsAttack || x.Skill.Skill.IsSpell);
@@ -30,125 +31,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public PartyServer PartyServer { get; set; }
     public PartyClient PartyClient { get; set; }
     public DateTime LastLeaderInput { get; set; } = DateTime.Now;
-
-    public override bool Initialise()
-    {
-
-
-        IsTaskRunning = false;
-        var mem = GameController.Memory;
-        var sc = GameController.IngameState.ShortcutSettings.Shortcuts;
-        Shortcuts = GameController.IngameState.ShortcutSettings.Shortcuts;// sc3;
-        if (Shortcuts == null || Shortcuts.Count <= 5)
-        {
-            LogError("No shortcuts found. Please check your game settings.", 100);
-            return false;
-        }
-
-        Settings.Party.ConnectClient.OnValueChanged += (v, a) =>
-        {
-            if (a)
-            {
-                LogMessage("Connecting to party server...", 0.5f);
-                PartyClient = new PartyClient(this);
-                ConnectToPartyServer();
-            }
-            else
-            {
-                LogMessage("Disconnecting from party server...", 0.5f);
-                PartyClient?.Disconnect();
-                PartyClient = null;
-            }
-        };
-
-        Settings.Server.ToggleLeaderServer.OnValueChanged += (foe, ar) =>
-        {
-            if (ar && IsTaskRunning == false)
-            {
-                PartyServer = new PartyServer(this);
-
-                LogMessage("Starting leader server...", 0.5f);
-                PartyServer.Start();
-            }
-
-           ;
-        };
-        Settings.Enable.OnValueChanged += (foe, ar) =>
-        {
-            if (ar)
-            {
-                LogMessage("FollowerPlugin enabled.", 0.5f);
-            }
-            else
-            {
-                LogMessage("FollowerPlugin disabled.", 0.5f);
-                this.DisconnectWithMessage("FollowerPlugin has been disabled. Disconnecting from party server.");
-            }
-        };
-
-
-        //changé récemment peut break???
-        ToggleLeaderServer();
-
-
-        if (IsTaskRunning == false && Settings.Party.ConnectClient)
-            ConnectTask();
-
-
-
-        return true;
-    }
-    public override void AreaChange(AreaInstance area)
-    {
-        base.AreaChange(area);
-    }
-    private void ConnectTask()
-    {
-        IsTaskRunning = true;
-
-
-        if (PartyClient != null && PartyClient.IsConnected)
-        {
-            return;
-        }
-        PartyServer = new PartyServer(this);
-        LogMessage("Starting connection task to party server...", 0.5f);
-        _ = Task.Run(async () =>
-    {
-
-        while (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
-
-        {
-            if (GameController.Party().Count <= 0)
-                continue;
-
-            LogMessage("Attempting to reconnect to party server...", 0.5f);
-
-            if (PartyClient == null)
-                PartyClient = new PartyClient(this);
-            else
-                ConnectToPartyServer();
-            await Task.Delay(1000);
-        }
-    });
-        LogError("task ended", 1.0f);
-        IsTaskRunning = false;
-
-    }
-    private void ConnectToPartyServer()
-    {
-        if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
-        {
-            PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
-            return;
-        }
-        if (PartyClient == null)
-        {
-            PartyClient = new PartyClient(this);
-        }
-        if (!PartyClient.IsConnected)
-            PartyClient.Connect();
-    }
+    #endregion
     public override Job Tick()
     {
         var currentTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
@@ -266,43 +149,42 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             LogMessage($"cas 1 : en hidout et le leader est surment en map ou ailleurs? ");
 
-            if (Settings.Party.Follow)
+
+            var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
+                .Where(x => x.IsValid && x.IsTargetable)
+                .OrderBy(e => e.DistancePlayer)
+                .ToList();
+
+            var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == PartyLeader.Element.ZoneName);
+
+            if (firstTP != null && firstTP.DistancePlayer < 50)
             {
-                var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
-                    .Where(x => x.IsValid && x.IsTargetable)
-                    .OrderBy(e => e.DistancePlayer)
-                    .ToList();
-
-                var firstTP = townPortals.FirstOrDefault(tp => tp.RenderName == PartyLeader.Element.ZoneName);
-
-                if (firstTP != null && firstTP.DistancePlayer < 50)
+                LogMessage($"Found town portal to follow: {firstTP.RenderName} distance{firstTP.DistancePlayer}", 0.5f);
+                this.TryDoAction(() =>
                 {
-                    LogMessage($"Found town portal to follow: {firstTP.RenderName} distance{firstTP.DistancePlayer}", 0.5f);
-                    this.TryDoAction(() =>
-                    {
-                        var castWithTarget = GameController.PluginBridge
-                            .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
-                        castWithTarget(firstTP, 0x400);
-                    });
+                    var castWithTarget = GameController.PluginBridge
+                        .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
+                    castWithTarget(firstTP, 0x400);
+                });
+                return;
+            }
+            else
+            {
+
+                var leaderTpElement = PartyLeader.Element.TeleportButton;
+                if (leaderTpElement?.IsActive == true)
+                {
+                    Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
+                    Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
+                    Input.Click(MouseButtons.Left);
+                    Input.KeyDown(Keys.Enter);
+                    Input.KeyUp(Keys.Enter);
+                    Thread.Sleep(1000);
+                    PartyLeader.LastTargetedPortalOrTransition = null;
                     return;
                 }
-                else
-                {
-
-                    var leaderTpElement = PartyLeader.Element.TeleportButton;
-                    if (leaderTpElement?.IsActive == true)
-                    {
-                        Graphics.DrawFrame(leaderTpElement.GetClientRect(), SharpDX.Color.Red, 2);
-                        Input.SetCursorPos(leaderTpElement.GetClientRect().Center.ToVector2Num());
-                        Input.Click(MouseButtons.Left);
-                        Input.KeyDown(Keys.Enter);
-                        Input.KeyUp(Keys.Enter);
-                        Thread.Sleep(1000);
-                        PartyLeader.LastTargetedPortalOrTransition = null;
-                        return;
-                    }
-                }
             }
+
         }
         //cas 2 : Leader n'est pas du tout sur la même map
 
@@ -647,7 +529,106 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                      
         }
     }
-    #region DisposeClose
+    #region InitConnectDisposeClose
+    public override bool Initialise()
+    {
+        IsTaskRunning = false;
+        var mem = GameController.Memory;
+        var sc = GameController.IngameState.ShortcutSettings.Shortcuts;
+        Shortcuts = GameController.IngameState.ShortcutSettings.Shortcuts;// sc3;
+        if (Shortcuts == null || Shortcuts.Count <= 5)
+        {
+            LogError("No shortcuts found. Please check your game settings.", 100);
+            return false;
+        }
+        Settings.Party.ConnectClient.OnValueChanged += (v, a) =>
+        {
+            if (a)
+            {
+                LogMessage("Connecting to party server...", 0.5f);
+                PartyClient = new PartyClient(this);
+                ConnectToPartyServer();
+            }
+            else
+            {
+                LogMessage("Disconnecting from party server...", 0.5f);
+                PartyClient?.Disconnect();
+                PartyClient = null;
+            }
+        };
+        Settings.Server.ToggleLeaderServer.OnValueChanged += (foe, ar) =>
+        {
+            if (ar && IsTaskRunning == false)
+            {
+                PartyServer = new PartyServer(this);
+
+                LogMessage("Starting leader server...", 0.5f);
+                PartyServer.Start();
+            }
+
+           ;
+        };
+        Settings.Enable.OnValueChanged += (foe, ar) =>
+        {
+            if (ar)
+            {
+                LogMessage("FollowerPlugin enabled.", 0.5f);
+            }
+            else
+            {
+                LogMessage("FollowerPlugin disabled.", 0.5f);
+                this.DisconnectWithMessage("FollowerPlugin has been disabled. Disconnecting from party server.");
+            }
+        };
+        ToggleLeaderServer();
+        if (IsTaskRunning == false && Settings.Party.ConnectClient)
+            ConnectTask();
+        return true;
+    }
+
+    private void ConnectTask()
+    {
+        IsTaskRunning = true;
+        if (PartyClient != null && PartyClient.IsConnected)       
+            return;    
+        PartyServer = new PartyServer(this);
+        LogMessage("Starting connection task to party server...", 0.5f);
+        _ = Task.Run(async () =>
+        {
+
+            while (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
+
+            {
+                if (GameController.Party().Count <= 0)
+                    continue;
+
+                LogMessage("Attempting to reconnect to party server...", 0.5f);
+
+                if (PartyClient == null)
+                    PartyClient = new PartyClient(this);
+                else
+                    ConnectToPartyServer();
+                await Task.Delay(1000);
+            }
+        });
+        LogError("task ended", 1.0f);
+        IsTaskRunning = false;
+
+    }
+    public void ConnectToPartyServer()
+    {
+        if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
+        {
+            PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
+            return;
+        }
+        if (PartyClient == null)
+        {
+            PartyClient = new PartyClient(this);
+        }
+        if (!PartyClient.IsConnected)
+            PartyClient.Connect();
+    }
     public override void Dispose()
     {
         this.DisconnectWithMessage("Disposing FollowerPlugin.");
@@ -669,4 +650,31 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         base.OnUnload();
     }
     #endregion
+}
+
+public static class ServerClientExtensions
+{
+    public static void ConnectTask(this MainPlugin p)
+    {
+        p.IsTaskRunning = true;
+        if (p.PartyClient != null && p.PartyClient.IsConnected)
+            return;
+       
+        p.LogMessage("Starting connection task to party server...", 0.5f);
+        _ = Task.Run(async () =>
+        {
+            while (p.Settings.Party.ConnectClient &&  p.PartyClient?.IsConnected == false)
+            {
+               
+                if (p.GameController.Party().Count > 0)
+                {
+                        p.ConnectToPartyServer();
+                    await Task.Delay(1000);
+                }
+            }
+        });
+        p.LogError("task ended", 1.0f);
+        p.IsTaskRunning = false;
+
+    }
 }
