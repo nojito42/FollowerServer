@@ -194,12 +194,22 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.IsSameZone} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
         // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
-        if (PartyLeader.IsSameZone && PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor))
+        if (PartyLeader != null && PartyLeader.IsSameZone && PartyLeader.Entity != null &&
+         PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor) &&
+        leaderActor.CurrentAction != null &&
+        leaderActor.CurrentAction.Target != null)
         {
-            var t = leaderActor.CurrentAction?.Target;
-            if (t != null && (t.Type == EntityType.AreaTransition || t.Type == EntityType.Portal || t.Type == EntityType.TownPortal || t.Metadata.StartsWith("Metadata/Terrain/Leagues/Harvest/Objects/HarvestPortalToggleableReverse")))
+            var t = leaderActor.CurrentAction.Target;
+
+            if (t.Type == EntityType.AreaTransition ||
+                t.Type == EntityType.Portal ||
+                t.Type == EntityType.TownPortal ||
+                (t.Metadata != null && t.Metadata.StartsWith("Metadata/Terrain/Leagues/Harvest/Objects/HarvestPortalToggleableReverse")))
+            {
                 PartyLeader.LastTargetedPortalOrTransition = t;
+            }
         }
+
         // Cas 3 : Le leader vient de prendre un portail et on le suit
         if (PartyLeader.LastTargetedPortalOrTransition != null &&
             PartyLeader.IsSameZone)
