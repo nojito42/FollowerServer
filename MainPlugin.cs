@@ -668,7 +668,10 @@ public static class ServerClientExtensions
                 {
                     p.LogMessage("Plugin disabled or settings turned off. Stopping coroutine.", 0.5f);
                     p.DisconnectWithMessage("FollowerPlugin is disabled, stopping connection task.");
-                    LoginCoroutine = null;
+                    Core.ParallelRunner.FindByName("ConnectRoutine").Done(true);
+                    LoginCoroutine = null; // Nettoyage de la coroutine
+
+                    return;
                 }
 
                 if (p.GameController.Party()?.Count > 0)
