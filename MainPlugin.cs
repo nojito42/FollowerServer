@@ -38,10 +38,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         var currentTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
-        if (currentTarget != null)      
+        if (currentTarget != null)
             LogMessage($"Current Target: {currentTarget.RenderName} - Type: {currentTarget.Type} - Distance: {currentTarget.DistancePlayer}");
         if (SetLeader() == false)
-           return null;       
+            return null;
         if (Settings.Server.ToggleLeaderServer.Value)
         {
             if (PartyServer != null && PartyServer.IsRunning)
@@ -110,7 +110,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 Thread.Sleep(100); // petite pause pour laisser le temps à l'action de se lancer
             });
             DateTime startTime = DateTime.Now;
-            while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target == portal || this.GetBuffs().Any(b => b.Name.Equals("grace_period")) ||GameController.IsLoading)
+            while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target == portal || this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading)
             {
                 var MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
                 // Fix for the line causing multiple errors
@@ -257,7 +257,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         .ToList();
                     foreach (var crySkill in crySkills)
                     {
-                        if(PartyLeader.Entity.DistancePlayer > 20)
+                        if (PartyLeader.Entity.DistancePlayer > 20)
                         {
                             LogMessage($"Leader is too far away ({PartyLeader.Entity.DistancePlayer} > {Settings.Party.KeepLeaderInRange.Value}), skipping cry skill: {crySkill.Name}");
                             break;
@@ -328,7 +328,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     {
                         var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
                         Graphics.DrawFrame(opt.Label[2].GetClientRect(), SharpDX.Color.Red, 1);
-                         
+
                         Input.SetCursorPos(opt.Label[2].GetClientRect().Center.ToVector2Num());
                         Thread.Sleep(20);
                         Input.Click(MouseButtons.Left);
@@ -512,23 +512,23 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         i++;
                     }
 
-                   
+
                 });
 
-              
+
             }
         }
         else if (Settings.Party.ConnectClient && PartyClient != null && PartyClient.IsConnected)
         {
 
-           var leaderBox = PartyLeader?.Element?.GetClientRect();
+            var leaderBox = PartyLeader?.Element?.GetClientRect();
             if (PartyLeader != null && leaderBox.Value.Top > 0.0f)
             {
                 Graphics.DrawFrame(leaderBox.Value, SharpDX.Color.Green, 2);
                 Graphics.DrawText($"Connected: {Settings.Party.ServerIP.Value}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20), SharpDX.Color.Green);
             }
-           
-                     
+
+
         }
     }
     #region InitConnectDisposeClose
@@ -588,22 +588,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             this.ConnectTask();
         }
-           
+
         return true;
     }
     public void ConnectToPartyServer()
     {
-        //if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
-        //{
-        //    PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
-        //    return;
-        //}
-        //if (PartyClient == null)
-        //{
-        //    PartyClient = new PartyClient(this);
-        //}
-        if (!PartyClient.IsConnected)
-            PartyClient.Connect();
+
     }
     public override void Dispose()
     {
@@ -633,8 +623,8 @@ public static class ServerClientExtensions
     public static Coroutine LoginCoroutine { get; private set; }
 
     public static void ConnectTask(this MainPlugin p)
-    {   
-        if(p.PartyClient == null)
+    {
+        if (p.PartyClient == null)
         {
             p.PartyClient = new PartyClient(p);
         }
@@ -651,7 +641,7 @@ public static class ServerClientExtensions
         // Si une coroutine existe mais est finie, on la clean
         if (LoginCoroutine != null && LoginCoroutine.IsDone)
         {
-            
+
             LoginCoroutine = null;
         }
 
@@ -668,16 +658,19 @@ public static class ServerClientExtensions
                 {
                     p.LogMessage("Plugin disabled or settings turned off. Stopping coroutine.", 0.5f);
                     p.DisconnectWithMessage("FollowerPlugin is disabled, stopping connection task.");
-                   
+
 
                     return;
                 }
 
                 if (p.GameController.Party()?.Count > 0)
                 {
-                    p.ConnectToPartyServer();
-                    p.LogMessage("Attempting to reconnect to party server...", 1.0f);
-                   
+                    if (!p.PartyClient.IsConnected)
+                    {
+                        p.PartyClient.Connect();
+                        p.LogMessage("Attempting to reconnect to party server...", 1.0f);
+                    }
+
                 }
 
             }
@@ -691,9 +684,9 @@ public static class ServerClientExtensions
             p.LogMessage("Connection coroutine ended.", 1.0f);
             p.IsTaskRunning = false;
 
-        },1500, p, "ConnectRoutine", true);
+        }, 1500, p, "ConnectRoutine", true);
 
-        if(LoginCoroutine != null)
+        if (LoginCoroutine != null)
             Core.ParallelRunner.Run(LoginCoroutine);
     }
 }
