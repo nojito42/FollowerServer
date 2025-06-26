@@ -668,8 +668,7 @@ public static class ServerClientExtensions
                 {
                     p.LogMessage("Plugin disabled or settings turned off. Stopping coroutine.", 0.5f);
                     p.DisconnectWithMessage("FollowerPlugin is disabled, stopping connection task.");
-                    Core.ParallelRunner.FindByName("ConnectRoutine").Done(true);
-                    LoginCoroutine = null; // Nettoyage de la coroutine
+                   
 
                     return;
                 }
@@ -681,6 +680,12 @@ public static class ServerClientExtensions
                    
                 }
 
+            }
+            else
+            {
+                Core.ParallelRunner.FindByName("ConnectRoutine").Done(true);
+                LoginCoroutine = null; // Nettoyage de la coroutine
+                p.LogMessage("Already connected to party server.", 1.0f);
             }
 
             p.LogMessage("Connection coroutine ended.", 1.0f);
