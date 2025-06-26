@@ -661,14 +661,14 @@ public static class ServerClientExtensions
         {
             p.IsTaskRunning = true;
 
-            while (p.PartyClient?.IsConnected == false)
+            if (p.PartyClient?.IsConnected == false)
             {
                 // Si le plugin est désactivé ou si les paramètres ont changé
                 if (!p.Settings.Enable || !p.Settings.Party.ConnectClient)
                 {
                     p.LogMessage("Plugin disabled or settings turned off. Stopping coroutine.", 0.5f);
                     p.DisconnectWithMessage("FollowerPlugin is disabled, stopping connection task.");
-                    break;
+                    LoginCoroutine = null;
                 }
 
                 if (p.GameController.Party()?.Count > 0)
@@ -686,6 +686,7 @@ public static class ServerClientExtensions
 
         }, 2, p, "ConnectRoutine", true);
 
-        Core.ParallelRunner.Run(LoginCoroutine);
+        if(LoginCoroutine != null)
+            Core.ParallelRunner.Run(LoginCoroutine);
     }
 }
