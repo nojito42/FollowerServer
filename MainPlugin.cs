@@ -48,7 +48,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
         else
         {
-            if (!IsTaskRunning && Settings.Party.ConnectClient)
+            if (!IsTaskRunning && Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
                 this.ConnectTask();
             if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
                 FollowerBehavior();
