@@ -14,6 +14,7 @@ using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using ExileCore.Shared;
 namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -654,36 +655,57 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
 public static class ServerClientExtensions
 {
+    public static Coroutine LoginCoroutine { get; private set; }
+
     public static void ConnectTask(this MainPlugin p)
     {
-        p.IsTaskRunning = true;
         if (p.PartyClient != null && p.PartyClient.IsConnected)
             return;
-       
+
+        // Si une coroutine existe déjà et n'est pas terminée, on ne la relance pas
+        if (LoginCoroutine != null && !LoginCoroutine.IsDone)
+        {
+            p.LogMessage("Coroutine already running. Skipping new start.", 0.5f);
+            return;
+        }
+
+        // Si une coroutine existe mais est finie, on la clean
+        if (LoginCoroutine != null && LoginCoroutine.IsDone)
+        {
+            
+            LoginCoroutine = null;
+        }
+
         p.LogMessage("Starting connection task to party server...", 0.5f);
-        _ = Task.Run( () =>
+
+        LoginCoroutine = new Coroutine(() =>
         {
             p.IsTaskRunning = true;
-            while ( p.PartyClient?.IsConnected == false )
+
+            while (p.PartyClient?.IsConnected == false)
             {
-                if(!p.Settings.Enable == false || !p.Settings.Party.ConnectClient)
+                // Si le plugin est désactivé ou si les paramètres ont changé
+                if (!p.Settings.Enable || !p.Settings.Party.ConnectClient)
                 {
-                    p.LogMessage("FollowerPlugin is disabled, stopping connection task.", 0.5f);
+                    p.LogMessage("Plugin disabled or settings turned off. Stopping coroutine.", 0.5f);
                     p.DisconnectWithMessage("FollowerPlugin is disabled, stopping connection task.");
-                    p.IsTaskRunning = false;
                     break;
                 }
 
-                if (p.GameController.Party().Count > 0)
+                if (p.GameController.Party()?.Count > 0)
                 {
                     p.LogMessage("Attempting to reconnect to party server...", 1.0f);
                     p.ConnectToPartyServer();
-                    Thread.Sleep(1000);
                 }
-            }
-        });
-        p.LogError("task ended", 1.0f);
-        p.IsTaskRunning = false;
 
+                Thread.Sleep(1000); // Pour limiter la boucle
+            }
+
+            p.LogMessage("Connection coroutine ended.", 1.0f);
+            p.IsTaskRunning = false;
+
+        }, 2, p, "ConnectRoutine", true);
+
+        Core.ParallelRunner.Run(LoginCoroutine);
     }
 }
