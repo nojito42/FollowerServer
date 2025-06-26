@@ -15,6 +15,7 @@ using ExileCore.PoEMemory.MemoryObjects;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using ExileCore.Shared;
+using System.Runtime.CompilerServices;
 namespace FollowerServer;
 
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
@@ -694,6 +695,7 @@ public static class ServerClientExtensions
 
                 if (p.GameController.Party()?.Count > 0)
                 {
+                    p.ConnectToPartyServer();
                     p.LogMessage("Attempting to reconnect to party server...", 1.0f);
                    
                 }
