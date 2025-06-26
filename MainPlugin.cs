@@ -548,7 +548,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             {
                 LogMessage("Connecting to party server...", 0.5f);
                 PartyClient = new PartyClient(this);
-                ConnectToPartyServer();
+                this.ConnectTask();
             }
             else
             {
@@ -695,7 +695,7 @@ public static class ServerClientExtensions
                 if (p.GameController.Party()?.Count > 0)
                 {
                     p.LogMessage("Attempting to reconnect to party server...", 1.0f);
-                    p.ConnectToPartyServer();
+                   
                 }
 
                 Thread.Sleep(1000); // Pour limiter la boucle
