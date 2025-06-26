@@ -48,7 +48,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         else
         {
             if (!IsTaskRunning && Settings.Party.ConnectClient)
-                ConnectTask();
+                this.ConnectTask();
             if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
                 FollowerBehavior();
         }
@@ -582,39 +582,39 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         //};
         ToggleLeaderServer();
         if (IsTaskRunning == false && Settings.Party.ConnectClient)
-            ConnectTask();
+            this.ConnectTask();
         return true;
     }
 
-    private void ConnectTask()
-    {
-        IsTaskRunning = true;
-        if (PartyClient != null && PartyClient.IsConnected)       
-            return;    
-        PartyServer = new PartyServer(this);
-        LogMessage("Starting connection task to party server...", 0.5f);
-        _ = Task.Run(async () =>
-        {
+    //private void ConnectTask()
+    //{
+    //    IsTaskRunning = true;
+    //    if (PartyClient != null && PartyClient.IsConnected)       
+    //        return;    
+    //    PartyServer = new PartyServer(this);
+    //    LogMessage("Starting connection task to party server...", 0.5f);
+    //    _ = Task.Run(async () =>
+    //    {
 
-            while (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
+    //        while (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
 
-            {
-                if (GameController.Party().Count <= 0)
-                    continue;
+    //        {
+    //            if (GameController.Party().Count <= 0)
+    //                continue;
 
-                LogMessage("Attempting to reconnect to party server...", 0.5f);
+    //            LogMessage("Attempting to reconnect to party server...", 0.5f);
 
-                if (PartyClient == null)
-                    PartyClient = new PartyClient(this);
-                else
-                    ConnectToPartyServer();
-                await Task.Delay(1000);
-            }
-        });
-        LogError("task ended", 1.0f);
-        IsTaskRunning = false;
+    //            if (PartyClient == null)
+    //                PartyClient = new PartyClient(this);
+    //            else
+    //                ConnectToPartyServer();
+    //            await Task.Delay(1000);
+    //        }
+    //    });
+    //    LogError("task ended", 1.0f);
+    //    IsTaskRunning = false;
 
-    }
+    //}
     public void ConnectToPartyServer()
     {
         if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
@@ -663,9 +663,10 @@ public static class ServerClientExtensions
         p.LogMessage("Starting connection task to party server...", 0.5f);
         _ = Task.Run(async () =>
         {
-            while (p.Settings.Party.ConnectClient && p.Settings.Enable &&  p.PartyClient?.IsConnected == false )
+            p.IsTaskRunning = true;
+            while ( p.PartyClient?.IsConnected == false )
             {
-                if(p.Settings.Enable == false)
+                if(!p.Settings.Enable == false || !p.Settings.Party.ConnectClient)
                 {
                     p.LogMessage("FollowerPlugin is disabled, stopping connection task.", 0.5f);
                     p.DisconnectWithMessage("FollowerPlugin is disabled, stopping connection task.");
@@ -675,7 +676,8 @@ public static class ServerClientExtensions
 
                 if (p.GameController.Party().Count > 0)
                 {
-                        p.ConnectToPartyServer();
+                    p.LogMessage("Attempting to reconnect to party server...", 1.0f);
+                    p.ConnectToPartyServer();
                     await Task.Delay(1000);
                 }
             }
