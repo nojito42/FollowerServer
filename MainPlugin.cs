@@ -548,7 +548,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (a)
             {
                 LogMessage("Connecting to party server...", 0.5f);
-                PartyClient = new PartyClient(this);
                 this.ConnectTask();
             }
             else
@@ -583,51 +582,26 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         //    }
         //};
         ToggleLeaderServer();
+
+
         if (IsTaskRunning == false && Settings.Party.ConnectClient)
+        {
             this.ConnectTask();
+        }
+           
         return true;
     }
-
-    //private void ConnectTask()
-    //{
-    //    IsTaskRunning = true;
-    //    if (PartyClient != null && PartyClient.IsConnected)       
-    //        return;    
-    //    PartyServer = new PartyServer(this);
-    //    LogMessage("Starting connection task to party server...", 0.5f);
-    //    _ = Task.Run(async () =>
-    //    {
-
-    //        while (Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
-
-    //        {
-    //            if (GameController.Party().Count <= 0)
-    //                continue;
-
-    //            LogMessage("Attempting to reconnect to party server...", 0.5f);
-
-    //            if (PartyClient == null)
-    //                PartyClient = new PartyClient(this);
-    //            else
-    //                ConnectToPartyServer();
-    //            await Task.Delay(1000);
-    //        }
-    //    });
-    //    LogError("task ended", 1.0f);
-    //    IsTaskRunning = false;
-
-    //}
     public void ConnectToPartyServer()
     {
-        if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
-        {
-            PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
-            return;
-        }
-        if (PartyClient == null)
-        {
-            PartyClient = new PartyClient(this);
-        }
+        //if (PartyClient.IsConnected && !Settings.Server.ToggleLeaderServer)
+        //{
+        //    PartyClient.SendMessage(MessageType.Order, "I'm already connected.");
+        //    return;
+        //}
+        //if (PartyClient == null)
+        //{
+        //    PartyClient = new PartyClient(this);
+        //}
         if (!PartyClient.IsConnected)
             PartyClient.Connect();
     }
@@ -659,8 +633,12 @@ public static class ServerClientExtensions
     public static Coroutine LoginCoroutine { get; private set; }
 
     public static void ConnectTask(this MainPlugin p)
-    {
-        if (p.PartyClient != null && p.PartyClient.IsConnected)
+    {   
+        if(p.PartyClient == null)
+        {
+            p.PartyClient = new PartyClient(p);
+        }
+        if (p.PartyClient.IsConnected)
             return;
 
         // Si une coroutine existe déjà et n'est pas terminée, on ne la relance pas
