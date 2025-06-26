@@ -222,9 +222,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var castWithTarget = GameController.PluginBridge
                     .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
                 castWithTarget(portal, 0x400);
+                Thread.Sleep(100); // petite pause pour laisser le temps à l'action de se lancer
             });
             DateTime startTime = DateTime.Now;
-            while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target == portal || this.GetBuffs().Any(b => b.Name.Equals("grace_period")))
+            while (GameController.Player.GetComponent<Actor>()?.CurrentAction?.Target == portal || this.GetBuffs().Any(b => b.Name.Equals("grace_period")) ||GameController.IsLoading)
             {
                 var MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
                 // Fix for the line causing multiple errors
@@ -238,21 +239,21 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
-                if (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading)
-                {
-                    LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
-                    PartyLeader.LastTargetedPortalOrTransition = null;
-                    Thread.Sleep(800);
-                    return;
-                }
+                //if (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading)
+                //{
+                //    LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
+                //    PartyLeader.LastTargetedPortalOrTransition = null;
+                //    Thread.Sleep(800);
+                //    return;
+                //}
 
-                if (MyTarget != portal)
-                {
-                    LogMessage("Portal action completed, player is no longer targeting it.", 100);
-                    PartyLeader.LastTargetedPortalOrTransition = null;
-                    Thread.Sleep(800);
-                    return;
-                }
+                //if (MyTarget != portal)
+                //{
+                //    LogMessage("Portal action completed, player is no longer targeting it.", 100);
+                //    PartyLeader.LastTargetedPortalOrTransition = null;
+                //    Thread.Sleep(800);
+                //    return;
+                //}
 
                 Thread.Sleep(100); // petite pause entre les vérifications
             }
