@@ -431,7 +431,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
             else if (leaderEntity.DistancePlayer <= Settings.Party.KeepLeaderInRange.Value)
             {
-                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.LabelsOnGroundVisible.Where(c => c != null&& c.ItemOnGround.Metadata.Contains("Metadata/Monsters/Mercenaries")).FirstOrDefault();
+                var opt = GameController.IngameState.IngameUi.ItemsOnGroundLabelElement.LabelsOnGroundVisible
+                    .Where(c => c?.ItemOnGround != null && c.ItemOnGround.Metadata != null &&
+                                c.ItemOnGround.Metadata.Contains("Metadata/Monsters/Mercenaries"))
+                    .FirstOrDefault();
                 if (opt != null)
                 {
                     var dist = opt.ItemOnGround.DistancePlayer;
