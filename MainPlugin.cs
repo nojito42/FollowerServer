@@ -661,7 +661,7 @@ public static class ServerClientExtensions
             return;
        
         p.LogMessage("Starting connection task to party server...", 0.5f);
-        _ = Task.Run(async () =>
+        _ = Task.Run( () =>
         {
             p.IsTaskRunning = true;
             while ( p.PartyClient?.IsConnected == false )
@@ -678,7 +678,7 @@ public static class ServerClientExtensions
                 {
                     p.LogMessage("Attempting to reconnect to party server...", 1.0f);
                     p.ConnectToPartyServer();
-                    await Task.Delay(1000);
+                    Thread.Sleep(1000);
                 }
             }
         });
