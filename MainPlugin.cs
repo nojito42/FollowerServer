@@ -681,13 +681,12 @@ public static class ServerClientExtensions
                    
                 }
 
-                Thread.Sleep(1000); // Pour limiter la boucle
             }
 
             p.LogMessage("Connection coroutine ended.", 1.0f);
             p.IsTaskRunning = false;
 
-        }, 2, p, "ConnectRoutine", true);
+        },1500, p, "ConnectRoutine", true);
 
         if(LoginCoroutine != null)
             Core.ParallelRunner.Run(LoginCoroutine);
