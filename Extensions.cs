@@ -89,7 +89,6 @@ public static class FollowerPluginExtensions
     public static void DisconnectWithMessage(this MainPlugin p, string message)
     {
         p.Log(message,LogLevel.Info, 5);
-        MainPlugin.Status = eStatus.Stopped;
         p.PartyClient?.Disconnect();
         p.PartyClient = null;
         p.PartyServer?.Stop();
@@ -139,6 +138,7 @@ public static class ServerClientExtensions
             if (p.PartyServer != null && p.PartyServer.IsRunning)
             {
                 p.Log("Stopping server...");
+                MainPlugin.Status = eStatus.Stopped;
                 p.PartyServer.Stop();
             }
 

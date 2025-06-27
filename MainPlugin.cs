@@ -64,7 +64,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         SetLeader();
         SetLocalSkillsAndShortCuts();
-        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading || MainPlugin.Status != eStatus.Running)
+        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
         {
             this.Log("Game not in focus or menu opened, skipping.");
             return;
@@ -510,9 +510,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                      pausedText = paused? "|>" : pausedText = "||";
                     if (paused)
                     {
-                        Status = eStatus.Paused;
-                        
-
+                        Status = eStatus.Paused;                      
                         this.Log("FollowerPlugin paused.", LogLevel.Info);
                     }
                     else
@@ -528,7 +526,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         PartyServer.SendMessageToClient(client.Key, new Message
                         {
                             MessageType = MessageType.Order,
-                            Content = pausedText,
+                            Content = paused ? "||" : pausedText = "|>",
                         });
                     }
 
