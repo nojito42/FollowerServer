@@ -1,18 +1,13 @@
 ﻿using ExileCore.PoEMemory.Components;
-using ExileCore.PoEMemory.MemoryObjects;
 using ExileCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Numerics;
 using Newtonsoft.Json;
-using System.Windows.Forms;
 using ExileCore.Shared.Helpers;
-using GameOffsets.Native;
 
 namespace FollowerServer;
 
@@ -25,18 +20,17 @@ public class PartyClient(MainPlugin plugin)
     private readonly MainPlugin _plugin = plugin;
     private string ServerIp => _plugin.Settings.Party.ServerIP; // Adresse IP du serveur (leader)
     public bool IsConnected => _client != null && _client.Connected;
-
     public void Connect()
     {
         if (!int.TryParse(_plugin.Settings.Server.Port, out int port))
         {
-            _plugin.LogError("Le port spécifié est invalide. Connexion annulée.");
+            _plugin.Log("Le port spécifié est invalide. Connexion annulée.", LogLevel.Error);
             return;
         }
 
         if (!IsServerAvailable(ServerIp, port, 500))
         {
-            _plugin.LogError("Serveur injoignable, connexion annulée.");
+            _plugin.Log("Serveur injoignable, connexion annulée.", LogLevel.Error);
             return;
         }
 
@@ -51,14 +45,13 @@ public class PartyClient(MainPlugin plugin)
             };
             receiveThread.Start();
 
-            SendMessage(MessageType.Connect,ClientName);
+            SendMessage(MessageType.Connect, ClientName);
         }
         catch (Exception ex)
         {
-            _plugin.LogError($"Erreur lors de la connexion au serveur : {ex.Message}");
+            _plugin.Log($"Erreur lors de la connexion au serveur : {ex.Message}", LogLevel.Error);
         }
     }
-
     private static bool IsServerAvailable(string ip, int port, int timeoutMs = 1000)
     {
         try
@@ -75,7 +68,6 @@ public class PartyClient(MainPlugin plugin)
             return false;
         }
     }
-
     public void SendMessage(MessageType messageType, string content)
     {
         if (_stream != null)
@@ -90,11 +82,11 @@ public class PartyClient(MainPlugin plugin)
 
                 byte[] messageBytes = Encoding.UTF8.GetBytes(message.Serialize());
                 _stream.Write(messageBytes, 0, messageBytes.Length);
-                _plugin.LogError($"Message envoyé : {message.Serialize()}");
+                _plugin.Log($"Message envoyé : {message.Serialize()}", LogLevel.Error);
             }
             catch (Exception ex)
             {
-                _plugin.LogError($"Erreur lors de l'envoi du message : {ex.Message}");
+                _plugin.Log($"Erreur lors de l'envoi du message : {ex.Message}", LogLevel.Error);
             }
         }
     }
@@ -131,24 +123,24 @@ public class PartyClient(MainPlugin plugin)
                 }
                 catch (JsonException jsonEx)
                 {
-                    _plugin.LogError($"Erreur de JSON : {jsonEx.Message}. Message reçu : {message}");
+                    _plugin.Log($"Erreur de JSON : {jsonEx.Message}. Message reçu : {message}", LogLevel.Error);
                 }
             }
         }
         catch (Exception ex)
         {
-            _plugin.LogError($"Erreur lors de la réception des messages : {ex.Message}");
+            _plugin.Log($"Erreur lors de la réception des messages : {ex.Message}", LogLevel.Error);
         }
         finally
         {
-            if(_client != null && _client.Connected)
+            if (_client != null && _client.Connected)
             {
                 _stream?.Close();
                 _client.Close();
                 _client = null;
             }
-            
-            _plugin.LogError("Déconnecté du serveur.");
+
+            _plugin.Log("Déconnecté du serveur.", LogLevel.Error);
             _stream = null;
             _client = null;
             _plugin.IsTaskRunning = false;
@@ -167,7 +159,7 @@ public class PartyClient(MainPlugin plugin)
 
             if (!int.TryParse(input.RawInput, out var inputIndex) || inputIndex <= 0)
             {
-                _plugin.LogError($"Input non reconnu ou invalide : {input.RawInput}");
+                _plugin.Log($"Input non reconnu ou invalide : {input.RawInput}", LogLevel.Error);
                 return;
             }
 
@@ -204,12 +196,12 @@ public class PartyClient(MainPlugin plugin)
                 if (worldTarget != null && worldTarget.HasValue && worldTarget != Vector2.Zero)
                 {
                     clickPos = _plugin.GameController.IngameState.Data.GetGridScreenPosition(worldTarget.Value);
-                    _plugin.LogMessage($"Position ajustée : {clickPos} depuis destination.");
+                    _plugin.Log($"Position ajustée : {clickPos} depuis destination.");
                 }
                 else
                 {
                     clickPos = leaderScreenPos;
-                    _plugin.LogError($"Ajustement par défaut à la position du leader : {clickPos}.");
+                    _plugin.Log($"Ajustement par défaut à la position du leader : {clickPos}.", LogLevel.Error);
                 }
             }
 
@@ -218,8 +210,8 @@ public class PartyClient(MainPlugin plugin)
                 Input.SetCursorPos(clickPos);
                 Thread.Sleep(10);
             }
-           
-            var scs = _plugin.Shortcuts.Skip(7).Take(13).ToList();
+
+            var scs = _plugin.GetSkillBarShortCuts();
             if (inputIndex < scs.Count)
             {
                 scs[inputIndex].PressShortCut(10);
@@ -227,10 +219,9 @@ public class PartyClient(MainPlugin plugin)
         }
         catch (Exception ex)
         {
-            _plugin.LogError($"Erreur lors du traitement de l'input : {ex}");
+            _plugin.Log($"Erreur lors du traitement de l'input : {ex}", LogLevel.Error);
         }
     }
-
     public void Disconnect()
     {
         if (_client != null)

@@ -1,7 +1,6 @@
 ﻿using ExileCore.PoEMemory.Elements;
 using Newtonsoft.Json;
 using System.Numerics;
-using System.Text.Json;
 
 namespace FollowerServer;
 public class PlayerSkill

@@ -26,17 +26,17 @@ public class PartyServer(MainPlugin plugin)
     {
         if (_isRunning || !IsLeaderAndServerHost)
         {
-            _plugin.LogError("Server Already Running, or you are not the leader and server host.");
+            _plugin.Log("Server Already Running, or you are not the leader and server host.", LogLevel.Error);
             return;
         }
 
         if (!int.TryParse(_plugin.Settings.Server.Port, out int port))
         {
-            _plugin.LogError("Le port spécifié est invalide. Initialisation du serveur annulée.");
+            _plugin.Log("Le port spécifié est invalide. Initialisation du serveur annulée.", LogLevel.Error);
             return;
         }
 
-        _plugin.LogError($"Serveur initialisé sur {ServerIP}:{port}.");
+        _plugin.Log($"Serveur initialisé sur {ServerIP}:{port}.", LogLevel.Error);
 
         if (_server == null)
             _server = new TcpListener(IPAddress.Parse(ServerIP), port);
@@ -46,7 +46,7 @@ public class PartyServer(MainPlugin plugin)
             try
             {
                 _server.Start();
-                _plugin.LogError($"Serveur démarré sur {ServerIP}:{port}. En attente de connexions...");
+                _plugin.Log($"Serveur démarré sur {ServerIP}:{port}. En attente de connexions...", LogLevel.Error);
                 _isRunning = true;
                 var toRemove = ConnectedClients
                     .Where(kvp => !kvp.Value.Connected)
@@ -62,14 +62,14 @@ public class PartyServer(MainPlugin plugin)
                 {
                     lock (ConnectedClients)
                     {
-                        _plugin.LogError($"[Monitor] Clients actifs : {ConnectedClients.Count}");
+                        _plugin.Log($"[Monitor] Clients actifs : {ConnectedClients.Count}", LogLevel.Info, 2000);
                     }
                 }, null, 0, 2000);
 
                 while (_isRunning)
                 {
                     TcpClient client = _server.AcceptTcpClient();
-                    _plugin.LogError("Nouveau client connecté.");
+                    _plugin.Log("Nouveau client connecté.", LogLevel.Error);
 
                     Thread clientThread = new(() => HandleClient(client))
                     {
@@ -80,7 +80,7 @@ public class PartyServer(MainPlugin plugin)
             }
             catch (Exception ex)
             {
-                _plugin.LogError($"Erreur : {ex.Message}");
+                _plugin.Log($"Erreur : {ex.Message}", LogLevel.Error);
                 _isRunning = false;
             }
         })
@@ -90,7 +90,6 @@ public class PartyServer(MainPlugin plugin)
 
         serverThread.Start();
     }
-
     public void Stop()
     {
         if (!_isRunning) return;
@@ -99,14 +98,13 @@ public class PartyServer(MainPlugin plugin)
         {
             _isRunning = false;
             _server.Stop();
-            _plugin.LogError("Serveur arrêté.");
+            _plugin.Log("Serveur arrêté.", LogLevel.Error);
         }
         catch (Exception ex)
         {
-            _plugin.LogError($"Erreur lors de l'arrêt du serveur : {ex.Message}");
+            _plugin.Log($"Erreur lors de l'arrêt du serveur : {ex.Message}", LogLevel.Error);
         }
     }
-
     private static string GetLocalIPAddress()
     {
         var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -117,7 +115,6 @@ public class PartyServer(MainPlugin plugin)
         }
         throw new Exception("Local IP Address Not Found!");
     }
-
     public void BroadcastLeaderInput(LeaderInput leaderInput)
     {
         var message = new Message
@@ -134,7 +131,6 @@ public class PartyServer(MainPlugin plugin)
                 SendMessageToClient(client, message);
         }
     }
-
     private void SendMessageToClient(TcpClient client, Message message)
     {
         try
@@ -145,10 +141,9 @@ public class PartyServer(MainPlugin plugin)
         }
         catch (Exception ex)
         {
-            _plugin.LogError($"Erreur lors de l'envoi du message au client : {ex.Message}");
+            _plugin.Log($"Erreur lors de l'envoi du message au client : {ex.Message}", LogLevel.Error);
         }
     }
-
     private void HandleClient(TcpClient client)
     {
         string clientName = null;
@@ -172,12 +167,12 @@ public class PartyServer(MainPlugin plugin)
                     lock (ConnectedClients)
                     {
                         ConnectedClients.TryAdd(clientName, client);
-                        _plugin.LogError($"Client connecté : {clientName}. Total clients : {ConnectedClients.Count}");
+                        _plugin.Log($"Client connecté : {clientName}. Total clients : {ConnectedClients.Count}", LogLevel.Error);
                     }
                 }
                 else
                 {
-                    _plugin.LogError("Premier message invalide ou non reconnu, fermeture de la connexion.");
+                    _plugin.Log("Premier message invalide ou non reconnu, fermeture de la connexion.", LogLevel.Error);
                     client.Close();
                     return;
                 }
@@ -187,14 +182,14 @@ public class PartyServer(MainPlugin plugin)
             while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
             {
                 string msg = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                _plugin.LogError($"[{clientName}] Message reçu : {msg}");
+                _plugin.Log($"[{clientName}] Message reçu : {msg}", LogLevel.Error);
 
                 // Ajoute ici le traitement du message si besoin
             }
         }
         catch (Exception ex)
         {
-            _plugin.LogError($"Erreur côté client {clientName ?? "inconnu"} : {ex.Message}");
+            _plugin.Log($"Erreur côté client {clientName ?? "inconnu"} : {ex.Message}", LogLevel.Error);
         }
         finally
         {
@@ -205,7 +200,7 @@ public class PartyServer(MainPlugin plugin)
                     if (ConnectedClients.ContainsKey(clientName))
                     {
                         ConnectedClients.Remove(clientName);
-                        _plugin.LogError($"Client {clientName} déconnecté. Clients restants : {ConnectedClients.Count}");
+                        _plugin.Log($"Client {clientName} déconnecté. Clients restants : {ConnectedClients.Count}", LogLevel.Error);
                     }
                 }
             }

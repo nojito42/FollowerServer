@@ -12,12 +12,8 @@ using GameOffsets.Native;
 using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
-using System.Threading.Tasks;
-using System.Diagnostics;
 using ExileCore.Shared;
-using System.Runtime.CompilerServices;
 namespace FollowerServer;
-
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
     #region Variables
@@ -25,11 +21,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public bool IsTaskRunning { get; set; } = false;
     public Leader PartyLeader { get; private set; }
     public PlayerSkill MoveSkill => LocalPlayerSkills.LastOrDefault(x => x.Skill.Skill.Id == 10505);
-    public PlayerSkill AttackSkill => LocalPlayerSkills.FirstOrDefault(x => x.Skill.Skill.IsAttack || x.Skill.Skill.IsSpell);
     DateTime lastMoveCheck = DateTime.Now;
     float lastMoveDelayMS = 20f; //ms
-
-    public IList<Shortcut> Shortcuts { get; set; }
     public PartyServer PartyServer { get; set; }
     public PartyClient PartyClient { get; set; }
     public DateTime LastLeaderInput { get; set; } = DateTime.Now;
@@ -39,7 +32,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         var currentTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
 
         if (currentTarget != null)
-            LogMessage($"Current Target: {currentTarget.RenderName} - Type: {currentTarget.Type} - Distance: {currentTarget.DistancePlayer}");
+            this.Log($"Current Target: {currentTarget.RenderName} - Type: {currentTarget.Type} - Distance: {currentTarget.DistancePlayer}", LogLevel.Info);
         if (SetLeader() == false)
             return null;
         if (Settings.Server.ToggleLeaderServer.Value)
@@ -62,22 +55,22 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         SetLocalSkillsAndShortCuts();
         if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
         {
-            LogMessage("Game not in focus or menu opened, skipping.");
+            this.Log("Game not in focus or menu opened, skipping.");
             return;
         }
 
         if (GameController.CloseWindowIfOpen())
         {
-            LogMessage("Flagged panels found, skipping follower behavior.");
+            this.Log("Flagged panels found, skipping follower behavior.");
             return;
         }
 
         if (PartyLeader.Entity != null && (PartyLeader.Entity.GetComponent<Actor>().Action == ActionFlags.None && GameController.Player.Buffs.Any(b => b.Name.Equals("grace_period"))))
         {
-            LogMessage(" is in grace period, skipping behaviors for now.");
+            this.Log(" is in grace period, skipping behaviors for now.");
             return;
         }
-        LogMessage($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.IsSameZone} - Current Area: {GameController.Area.CurrentArea.Name}", 0.5f);
+        this.Log($"LeaderENTITY: {PartyLeader.Entity?.GetComponent<Player>()?.PlayerName} - Zone: {PartyLeader.IsSameZone} - Current Area: {GameController.Area.CurrentArea.Name}");
         // Cas 3 : Leader est sur la même map et utilise une transition ou un portail
         if (PartyLeader != null && PartyLeader.IsSameZone && PartyLeader.Entity != null &&
          PartyLeader.Entity.TryGetComponent<Actor>(out Actor leaderActor) &&
@@ -116,40 +109,23 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 // Fix for the line causing multiple errors
                 if ((DateTime.Now - startTime).TotalSeconds > 5)
                 {
-                    LogError("Timeout while trying to follow portal, aborting.");
+                    this.Log("Timeout while trying to follow portal, aborting.", LogLevel.Error, 1);
                     PartyLeader.LastTargetedPortalOrTransition = null;
                     return;
                 }
 
 
                 MyTarget = GameController.Player.GetComponent<Actor>().CurrentAction?.Target;
-
-                //if (this.GetBuffs().Any(b => b.Name.Equals("grace_period")) || GameController.IsLoading)
-                //{
-                //    LogMessage($"Successfully followed portal: {portal.RenderName}", 100);
-                //    PartyLeader.LastTargetedPortalOrTransition = null;
-                //    Thread.Sleep(800);
-                //    return;
-                //}
-
-                //if (MyTarget != portal)
-                //{
-                //    LogMessage("Portal action completed, player is no longer targeting it.", 100);
-                //    PartyLeader.LastTargetedPortalOrTransition = null;
-                //    Thread.Sleep(800);
-                //    return;
-                //}
-
                 Thread.Sleep(100); // petite pause entre les vérifications
             }
             PartyLeader.LastTargetedPortalOrTransition = null;
-            LogError("Failed to follow portal after all attempts");
+            this.Log("Failed to follow portal after all attempts", LogLevel.Error, 1);
             return;
         }
         // Cas 1 : On est en hideout, et le leader est en map -------------------> A CHECKER
         if (GameController.Area.CurrentArea.IsHideout && (!PartyLeader.IsSameZone))
         {
-            LogMessage($"cas 1 : en hidout et le leader est surment en map ou ailleurs? ");
+            this.Log($"cas 1 : en hidout et le leader est surment en map ou ailleurs? ");
 
 
             var townPortals = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.TownPortal]
@@ -161,7 +137,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
             if (firstTP != null && firstTP.DistancePlayer < 50)
             {
-                LogMessage($"Found town portal to follow: {firstTP.RenderName} distance{firstTP.DistancePlayer}", 0.5f);
+                this.Log($"Found town portal to follow: {firstTP.RenderName} distance{firstTP.DistancePlayer}");
                 this.TryDoAction(() =>
                 {
                     var castWithTarget = GameController.PluginBridge
@@ -192,7 +168,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         if (!PartyLeader.IsSameZone && !GameController.Area.CurrentArea.IsHideout)
         {
-            LogMessage($"cas 2 : Leader n'est pas du tout sur la même map, on va essayer de le suivre");
+            this.Log($"cas 2 : Leader n'est pas du tout sur la même map, on va essayer de le suivre");
 
             var ui = GameController.IngameState.IngameUi;
             if (PartyLeader.Element.TeleportButton?.IsActive == true)
@@ -208,7 +184,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
         // Cas 5 : fallback si rien d’autre ne s’est passé, gérer comportement normal
-        LogMessage("Cas 5 : fallback, gérer comportement normal", 0.5f);
+        this.Log("Cas 5 : fallback, gérer comportement normal");
         PartyLeader.LastTargetedPortalOrTransition = null; // Reset last targeted portal or transition
         ManageLeaderOnSameMap();
     }
@@ -224,7 +200,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (Settings.Party.UseSmartTPSkill && isTravelSkill)
             {
                 var myTravelSkill = GameController.Player.GetComponent<Actor>().ActorSkills.FirstOrDefault(x => x.GetStat(GameStat.SkillIsTravelSkill) > 0 && x.IsOnSkillBar);
-                LogError($"My Travel Skill: {myTravelSkill?.Name} {myTravelSkill?.SkillSlotIndex}");
+                this.Log($"My Travel Skill: {myTravelSkill?.Name} {myTravelSkill?.SkillSlotIndex}", LogLevel.Info);
                 if (myTravelSkill != null)
                 {
 
@@ -234,10 +210,10 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         Input.SetCursorPos(wts);
                         Thread.Sleep(50);
 
-                        var scs = Shortcuts.Skip(7).Take(13).ToList()[myTravelSkill.SkillSlotIndex];
+                        var scs = this.GetSkillBarShortCuts()[myTravelSkill.SkillSlotIndex];
                         scs.PressShortCut(10);
 
-                        LogError($"Pressed Travel Skill: {myTravelSkill.Name} {myTravelSkill.SkillSlotIndex} with shortcut {scs.MainKey} {scs.Modifier}");
+                        this.Log($"Pressed Travel Skill: {myTravelSkill.Name} {myTravelSkill.SkillSlotIndex} with shortcut {scs.MainKey} {scs.Modifier}");
                         return;
                     });
                 }
@@ -247,7 +223,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
                 if (GameController.Player.GetComponent<Actor>().Action == ActionFlags.Moving && Settings.Party.OnlyCryWhenIdle)
                 {
-                    LogMessage("Player is moving, skipping cries auto usage.");
+                    this.Log("Player is moving, skipping cries auto usage.");
 
                 }
                 else
@@ -259,7 +235,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     {
                         if (PartyLeader.Entity.DistancePlayer > 20)
                         {
-                            LogMessage($"Leader is too far away ({PartyLeader.Entity.DistancePlayer} > {Settings.Party.KeepLeaderInRange.Value}), skipping cry skill: {crySkill.Name}");
+                            this.Log($"Leader is too far away ({PartyLeader.Entity.DistancePlayer} > {Settings.Party.KeepLeaderInRange.Value}), skipping cry skill: {crySkill.Name}");
                             break;
                         }
                         if (this.GetBuffs().Any(b => b.Name.Contains(crySkill.InternalName)))
@@ -272,7 +248,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         }
                         this.TryDoAction(() =>
                         {
-                            var scs = Shortcuts.Skip(7).Take(13).ToList()[crySkill.SkillSlotIndex];
+                            var scs = this.GetSkillBarShortCuts()[crySkill.SkillSlotIndex];
                             scs.PressShortCut(1);
                         });
                     }
@@ -306,7 +282,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     {
                         this.TryDoAction(() =>
                         {
-                            LogError($"Casting skill with target: {moveSkill.Skill.Skill.Name}");
+                            this.Log($"Casting skill with target: {moveSkill.Skill.Skill.Name}");
                             var castWithTarget = GameController.PluginBridge
                                 .GetMethod<Action<Entity, uint>>("MagicInput.CastSkillWithTarget");
                             castWithTarget(leaderEntity, 0x400);
@@ -323,7 +299,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 if (opt != null)
                 {
                     var dist = opt.ItemOnGround.DistancePlayer;
-                    LogError($"Found item on ground: {opt} {dist} {opt.Label.ChildCount}");
+                    this.Log($"Found item on ground: {opt} {dist} {opt.Label.ChildCount}");
                     if (opt.Label.ChildCount == 3 && opt.Label[2].IsVisible && dist <= 20)
                     {
                         var screenPos = opt.Label.GetClientRect().Center.ToVector2Num();
@@ -336,12 +312,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     }
                     else
                     {
-                        LogError("Item on ground label does not have the expected child count or visibility.");
+                        this.Log("Item on ground label does not have the expected child count or visibility.");
                     }
 
                 }
                 else
-                    LogError("opt == nujll", 100);
+                    this.Log("opt == null");
 
                 if (Input.IsKeyDown((Keys)MoveSkill.Shortcut.MainKey))
                 {
@@ -352,7 +328,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     }
     private void SetLocalSkillsAndShortCuts()
     {
-        var sc = Shortcuts.Skip(7).Take(13).ToList();
+        var sc = this.GetSkillBarShortCuts();
         LocalPlayerSkills.Clear();
 
         for (int i = 0; i < sc.Count; i++)
@@ -364,32 +340,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             });
         }
     }
-    private void ToggleLeaderServer()
-    {
-        if (Settings.Server.ToggleLeaderServer.Value)
-        {
-            PartyServer ??= new PartyServer(this);
 
-            if (Settings.Server.ToggleLeaderServer.Value && !PartyServer.IsRunning)
-            {
-                LogError("Starting server...");
-                PartyServer.Start();
-            }
-            else
-            {
-                Settings.Server.ToggleLeaderServer.Value = false;
-            }
-        }
-        else
-        {
-            if (PartyServer != null && PartyServer.IsRunning)
-            {
-                LogError("Stopping server...");
-                PartyServer.Stop();
-            }
-
-        }
-    }
     public bool SetLeader()
     {
         var pt = GameController.Party();
@@ -414,13 +365,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         if (GameController.IsLoading) return;
         if (PartyServer == null)
         {
-            LogMessage("PartyServer is null. Exiting Tick.");
+            this.Log("PartyServer is null. Exiting Tick.");
             return;
         }
 
         if (!Settings.Server.ToggleLeaderServer.Value)
         {
-            LogMessage("Not the leader or server host. Exiting Tick.");
+            this.Log("Not the leader or server host. Exiting Tick.");
             return;
         }
 
@@ -432,13 +383,13 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             .Where(x => x.IsOnSkillBar && x.SkillSlotIndex >= 0 && x.SkillSlotIndex < 13)
             .Select(x => new PlayerSkill
             {
-                Shortcut = Shortcuts.Skip(7).Take(13).ToList()[x.SkillSlotIndex],
+                Shortcut = this.GetSkillBarShortCuts()[x.SkillSlotIndex],
                 Skill = skillbar.Skills[x.SkillSlotIndex]
             }));
         var pressedSkills = LocalPlayerSkills.Where(x => x.Shortcut.IsShortCutPressed() && x.Skill.Skill.SkillSlotIndex > 0);
         if (pressedSkills == null)
         {
-            LogMessage("FoeSkill is null. Exiting Tick.");
+            this.Log("FoeSkill is null. Exiting Tick.");
             return;
         }
         else
@@ -458,7 +409,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 return;
             }
 
-            LogMessage($"Broadcasting {pressedSkills.Count()} pressed skills to followers.", 0.5f);
+            this.Log($"Broadcasting {pressedSkills.Count()} pressed skills to followers.");
 
             foreach (var foe in pressedSkills)
             {
@@ -492,7 +443,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 var pt = GameController.IngameState.IngameUi.PartyElement.PlayerElements.ToList();
                 if (pt == null || pt.Count == 0)
                 {
-                    LogMessage("No party members found to draw circles.", 100);
+                    this.Log("No party members found to draw circles.");
                     return;
                 }
                 int i = 0;
@@ -504,7 +455,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         .FirstOrDefault(x => x.GetComponent<Player>()?.PlayerName == pm.PlayerName);
                     if (e == null)
                     {
-                        LogMessage($"Entity for player {pm.PlayerName} not found.", 100);
+                        this.Log($"Entity for player {pm.PlayerName} not found.");
                         return;
                     }
                     var gp = GameController.IngameState.Data.GetWorldScreenPosition(e.PosNum);
@@ -532,28 +483,27 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
         }
     }
-    #region InitConnectDisposeClose
+    #region InitConnectDisposeClose 
     public override bool Initialise()
     {
         IsTaskRunning = false;
-        var mem = GameController.Memory;
         var sc = GameController.IngameState.ShortcutSettings.Shortcuts;
-        Shortcuts = GameController.IngameState.ShortcutSettings.Shortcuts;// sc3;
+        var Shortcuts = GameController.IngameState.ShortcutSettings.Shortcuts;// sc3;
         if (Shortcuts == null || Shortcuts.Count <= 5)
         {
-            LogError("No shortcuts found. Please check your game settings.", 100);
+            this.Log("No shortcuts found. Please check your game settings.", LogLevel.Error, 10);
             return false;
         }
         Settings.Party.ConnectClient.OnValueChanged += (v, a) =>
         {
             if (a)
             {
-                LogMessage("Connecting to party server...", 0.5f);
+                this.Log("Connecting to party server...", LogLevel.Info);
                 this.ConnectTask();
             }
             else
             {
-                LogMessage("Disconnecting from party server...", 0.5f);
+                this.Log("Disconnecting from party server...", LogLevel.Info);
                 PartyClient?.Disconnect();
                 PartyClient = null;
             }
@@ -564,20 +514,17 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             {
                 PartyServer = new PartyServer(this);
 
-                LogMessage("Starting leader server...", 0.5f);
+                this.Log("Starting leader server...", LogLevel.Info, 1);
                 PartyServer.Start();
             }
 
            ;
         };
-        ToggleLeaderServer();
-
-
+        this.ToggleLeaderServer();
         if (IsTaskRunning == false && Settings.Party.ConnectClient)
         {
             this.ConnectTask();
         }
-
         return true;
     }
     public override void Dispose()
@@ -601,77 +548,4 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         base.OnUnload();
     }
     #endregion
-}
-
-public static class ServerClientExtensions
-{
-    public static Coroutine LoginCoroutine { get; private set; }
-
-    public static void ConnectTask(this MainPlugin p)
-    {
-        if (p.PartyClient == null)
-        {
-            p.PartyClient = new PartyClient(p);
-        }
-        if (p.PartyClient.IsConnected)
-            return;
-
-        // Si une coroutine existe déjà et n'est pas terminée, on ne la relance pas
-        if (LoginCoroutine != null && !LoginCoroutine.IsDone)
-        {
-            p.LogMessage("Coroutine already running. Skipping new start.", 0.5f);
-            return;
-        }
-
-        // Si une coroutine existe mais est finie, on la clean
-        if (LoginCoroutine != null && LoginCoroutine.IsDone)
-        {
-
-            LoginCoroutine = null;
-        }
-
-        p.LogMessage("Starting connection task to party server...", 0.5f);
-
-        LoginCoroutine = new Coroutine(() =>
-        {
-            p.IsTaskRunning = true;
-
-            if (p.PartyClient?.IsConnected == false)
-            {
-                // Si le plugin est désactivé ou si les paramètres ont changé
-                if (!p.Settings.Enable || !p.Settings.Party.ConnectClient)
-                {
-                    p.LogMessage("Plugin disabled or settings turned off. Stopping coroutine.", 0.5f);
-                    p.DisconnectWithMessage("FollowerPlugin is disabled, stopping connection task.");
-
-
-                    return;
-                }
-
-                if (p.GameController.Party()?.Count > 0)
-                {
-                    if (!p.PartyClient.IsConnected)
-                    {
-                        p.PartyClient.Connect();
-                        p.LogMessage("Attempting to reconnect to party server...", 1.0f);
-                    }
-
-                }
-
-            }
-            else
-            {
-                Core.ParallelRunner.FindByName("ConnectRoutine").Done(true);
-                LoginCoroutine = null; // Nettoyage de la coroutine
-                p.LogMessage("Already connected to party server.", 1.0f);
-            }
-
-            p.LogMessage("Connection coroutine ended.", 1.0f);
-            p.IsTaskRunning = false;
-
-        }, 1500, p, "ConnectRoutine", true);
-
-        if (LoginCoroutine != null)
-            Core.ParallelRunner.Run(LoginCoroutine);
-    }
 }

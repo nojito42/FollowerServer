@@ -1,6 +1,10 @@
-﻿using ExileCore.Shared.Attributes;
+﻿using ExileCore;
+using ExileCore.Shared.Attributes;
 using ExileCore.Shared.Interfaces;
 using ExileCore.Shared.Nodes;
+using ImGuiNET;
+using System;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace FollowerServer;
@@ -10,6 +14,9 @@ public class FollowerPluginSettings : ISettings
     public ToggleNode Enable { get; set; } = new ToggleNode(false);
     public ServerSubMenu Server { get; set; } = new ServerSubMenu();
     public PartySubMenu Party { get; set; } = new PartySubMenu();
+
+    public MiscSettings Misc { get; set; } = new MiscSettings();
+
 }
 
 [Submenu]
@@ -25,6 +32,7 @@ public class ServerSubMenu
     public TextNode Port { get; set; } = new TextNode("5051");
 
     public RangeNode<int> ServerTick { get; set; } = new RangeNode<int>(100, 10, 1000);
+
 }
 
 [Submenu]
@@ -45,4 +53,12 @@ public class PartySubMenu
     public RangeNode<int> screenOffsetAdjustementX { get; set; } = new RangeNode<int>(0, -200, 200);
     public RangeNode<int> screenOffsetAdjustementY { get; set; } = new RangeNode<int>(0, -200, 200);
 
+}
+
+
+[Submenu]
+public class MiscSettings
+{
+    public ToggleNode ShowDebugInfo { get; set; } = new ToggleNode(false);
+    public ListNode LogLevel { get; set; } = new ListNode() { Values = [.. Enum.GetNames(typeof(LogLevel))] };
 }
