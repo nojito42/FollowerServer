@@ -8,25 +8,19 @@ using System.Threading;
 
 namespace FollowerServer;
 
-public class PartyServer
+public class PartyServer(MainPlugin plugin)
 {
     private TcpListener _server;
     private bool _isRunning;
-    private readonly MainPlugin _plugin;
+    private readonly MainPlugin _plugin = plugin;
     public bool IsRunning => _isRunning;
 
-    public readonly string ServerIP;
+    public static string ServerIP => GetLocalIPAddress();
     public string username = "user";
 
     public bool IsLeaderAndServerHost => _plugin.Settings.Server.ToggleLeaderServer.Value;
 
     public Dictionary<string, TcpClient> ConnectedClients { get; set; } = [];
-
-    public PartyServer(MainPlugin plugin)
-    {
-        _plugin = plugin;
-        ServerIP = GetLocalIPAddress();
-    }
 
     public void Start()
     {
@@ -54,8 +48,6 @@ public class PartyServer
                 _server.Start();
                 _plugin.LogError($"Serveur démarré sur {ServerIP}:{port}. En attente de connexions...");
                 _isRunning = true;
-
-                // Retire les clients déconnectés
                 var toRemove = ConnectedClients
                     .Where(kvp => !kvp.Value.Connected)
                     .Select(kvp => kvp.Key)
@@ -179,9 +171,7 @@ public class PartyServer
 
                     lock (ConnectedClients)
                     {
-                        if (!ConnectedClients.ContainsKey(clientName))
-                            ConnectedClients.Add(clientName, client);
-
+                        ConnectedClients.TryAdd(clientName, client);
                         _plugin.LogError($"Client connecté : {clientName}. Total clients : {ConnectedClients.Count}");
                     }
                 }

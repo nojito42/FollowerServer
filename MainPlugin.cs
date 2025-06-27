@@ -435,7 +435,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                 Shortcut = Shortcuts.Skip(7).Take(13).ToList()[x.SkillSlotIndex],
                 Skill = skillbar.Skills[x.SkillSlotIndex]
             }));
-        var pressedSkills = LocalPlayerSkills.Where(x => x.Shortcut.IsShortCutPressed() /*&& Skills.IndexOf(x) > 0*/);
+        var pressedSkills = LocalPlayerSkills.Where(x => x.Shortcut.IsShortCutPressed() && x.Skill.Skill.SkillSlotIndex > 0);
         if (pressedSkills == null)
         {
             LogMessage("FoeSkill is null. Exiting Tick.");
