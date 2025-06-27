@@ -27,13 +27,11 @@ public class PartyServer(MainPlugin plugin)
         if (_isRunning || !IsLeaderAndServerHost)
         {
             _plugin.Log("Server Already Running, or you are not the leader and server host.", LogLevel.Error);
-            MainPlugin.Status = eStatus.Stopped;
             return;
         }
 
         if (!int.TryParse(_plugin.Settings.Server.Port, out int port))
         {
-            MainPlugin.Status = eStatus.Stopped;
             _plugin.Log("Le port spécifié est invalide. Initialisation du serveur annulée.", LogLevel.Error);
             return;
         }
