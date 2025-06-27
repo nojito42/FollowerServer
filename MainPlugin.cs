@@ -526,7 +526,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         PartyServer.SendMessageToClient(client.Key, new Message
                         {
                             MessageType = MessageType.Order,
-                            Content = paused ? "||" : pausedText = "|>",
+                            Content = paused ? "|>" : pausedText = "||",
                         });
                     }
 
