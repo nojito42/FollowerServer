@@ -46,11 +46,9 @@ public class PartyClient(MainPlugin plugin)
             receiveThread.Start();
 
             SendMessage(MessageType.Connect, ClientName);
-            MainPlugin.Status = eStatus.Running;
         }
         catch (Exception ex)
         {
-            MainPlugin.Status = eStatus.Stopped;
             _plugin.Log($"Erreur lors de la connexion au serveur : {ex.Message}", LogLevel.Error);
         }
     }
@@ -59,7 +57,6 @@ public class PartyClient(MainPlugin plugin)
     {
         _client = null;
         _stream = null;
-        MainPlugin.Status = eStatus.Stopped;
         _plugin.IsTaskRunning = false;
     }
 
@@ -123,13 +120,13 @@ public class PartyClient(MainPlugin plugin)
                                 {
                                     _plugin.Log($"Message reçu : {messageObj.Content}", LogLevel.Error);
                                    
-                                    if(messageObj.Content == "||")
+                                    if(messageObj.Content == "|>")
                                     {
                                         _plugin.Log("Pause Follow");
                                         MainPlugin.Status = eStatus.Running;
                                        
                                     }
-                                    else if (messageObj.Content == "|>")
+                                    else if (messageObj.Content == "||")
                                     {
                                         _plugin.Log("Resume Follow");
                                         MainPlugin.Status = eStatus.Paused;
