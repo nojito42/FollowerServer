@@ -77,6 +77,12 @@ public class PartyServer(MainPlugin plugin)
                     {
                         IsBackground = true
                     };
+
+                    SendMessageToClient(client, new Message
+                    {
+                        MessageType = MessageType.Order,
+                        Content = MainPlugin.Status == eStatus.Running ? "|>" : "||",
+                    });
                     clientThread.Start();
                 }
             }
