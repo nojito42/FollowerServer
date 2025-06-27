@@ -120,13 +120,13 @@ public class PartyClient(MainPlugin plugin)
                                 {
                                     _plugin.Log($"Message reçu : {messageObj.Content}", LogLevel.Error);
                                    
-                                    if(messageObj.Content == "|>")
+                                    if(messageObj.Content == "Paused")
                                     {
                                         _plugin.Log("Pause Follow");
                                         MainPlugin.Status = eStatus.Running;
                                        
                                     }
-                                    else if (messageObj.Content == "||")
+                                    else if (messageObj.Content == "Running")
                                     {
                                         _plugin.Log("Resume Follow");
                                         MainPlugin.Status = eStatus.Paused;

@@ -81,7 +81,7 @@ public class PartyServer(MainPlugin plugin)
                     SendMessageToClient(client, new Message
                     {
                         MessageType = MessageType.Order,
-                        Content = MainPlugin.Status == eStatus.Running ? "|>" : "||",
+                        Content = MainPlugin.Status.ToString()
                     });
                     clientThread.Start();
                 }
