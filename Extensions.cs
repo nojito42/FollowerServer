@@ -126,11 +126,11 @@ public static class ServerClientExtensions
                 p.Log("Starting server...");
                
                 p.PartyServer.Start();
+                MainPlugin.Status = eStatus.Running;
             }
             else
             {
                 p.Settings.Server.ToggleLeaderServer.Value = false;
-                MainPlugin.Status = eStatus.Stopped;
             }
         }
         else
@@ -138,7 +138,6 @@ public static class ServerClientExtensions
             if (p.PartyServer != null && p.PartyServer.IsRunning)
             {
                 p.Log("Stopping server...");
-                MainPlugin.Status = eStatus.Stopped;
                 p.PartyServer.Stop();
             }
 

@@ -20,14 +20,13 @@ public enum eStatus
 {
     Running,
     Paused,
-    Stopped
 }
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
 
     
     #region Variables
-    public static eStatus Status { get; set; } = eStatus.Stopped;
+    public static eStatus Status { get; set; } = eStatus.Paused;
     public List<PlayerSkill> LocalPlayerSkills { get; set; } = [];
     public bool IsTaskRunning { get; set; } = false;
     public Leader PartyLeader { get; private set; }
@@ -443,7 +442,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         var partyBox = GameController.IngameState.IngameUi.PartyElement?.GetClientRectCache;
         if (Settings.Server.ToggleLeaderServer && PartyServer != null && PartyServer.IsRunning)
         {
-            Graphics.DrawText($"{Status} {PartyServer.ServerIP}-{PartyServer.ConnectedClients.Count}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20));
+            Graphics.DrawText($"{Status.ToString().ToUpperInvariant()} {PartyServer.ServerIP}-{PartyServer.ConnectedClients.Count}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20));
             var curAction = GameController.Player.GetComponent<Actor>().Action;
             if (Settings.Server.DrawFollowersCircle)
             {
@@ -526,7 +525,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                         PartyServer.SendMessageToClient(client.Key, new Message
                         {
                             MessageType = MessageType.Order,
-                            Content = MainPlugin.Status.ToString(),
+                            Content = Status.ToString(),
                         });
                     }
 
@@ -549,7 +548,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             if (PartyLeader != null && partyBox.Value.Top > 0.0f)
             {
                 Graphics.DrawFrame(partyBox.Value, SharpDX.Color.Green, 2);
-                Graphics.DrawText($"Connected: {Settings.Party.ServerIP.Value} - {Status}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20), SharpDX.Color.Green);
+                Graphics.DrawText($" {Status.ToString().ToUpperInvariant()} {Settings.Party.ServerIP.Value}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20), SharpDX.Color.Green);
             }
         }
 
