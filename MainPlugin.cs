@@ -509,12 +509,12 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                      pausedText = paused? "|>" : pausedText = "||";
                     if (paused)
                     {
-                        Status = eStatus.Paused;                      
+                        Status = eStatus.Running;                      
                         this.Log("FollowerPlugin paused.", LogLevel.Info);
                     }
                     else
                     {
-                        Status = eStatus.Running;
+                        Status = eStatus.Paused;
                         this.Log("FollowerPlugin resumed.", LogLevel.Info);
                     }
 
