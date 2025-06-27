@@ -27,11 +27,13 @@ public class PartyServer(MainPlugin plugin)
         if (_isRunning || !IsLeaderAndServerHost)
         {
             _plugin.Log("Server Already Running, or you are not the leader and server host.", LogLevel.Error);
+            MainPlugin.Status = eStatus.Stopped;
             return;
         }
 
         if (!int.TryParse(_plugin.Settings.Server.Port, out int port))
         {
+            MainPlugin.Status = eStatus.Stopped;
             _plugin.Log("Le port spécifié est invalide. Initialisation du serveur annulée.", LogLevel.Error);
             return;
         }
@@ -89,6 +91,7 @@ public class PartyServer(MainPlugin plugin)
         };
 
         serverThread.Start();
+        MainPlugin.Status = eStatus.Running;
     }
     public void Stop()
     {
@@ -142,6 +145,18 @@ public class PartyServer(MainPlugin plugin)
         catch (Exception ex)
         {
             _plugin.Log($"Erreur lors de l'envoi du message au client : {ex.Message}", LogLevel.Error);
+        }
+    }
+
+    public void SendMessageToClient(string name, Message message)
+    {
+        if (ConnectedClients.TryGetValue(name, out TcpClient client))
+        {
+            SendMessageToClient(client, message);
+        }
+        else
+        {
+            _plugin.Log($"Client {name} non trouvé pour l'envoi du message.", LogLevel.Error);
         }
     }
     private void HandleClient(TcpClient client)

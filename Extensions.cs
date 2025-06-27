@@ -89,6 +89,7 @@ public static class FollowerPluginExtensions
     public static void DisconnectWithMessage(this MainPlugin p, string message)
     {
         p.Log(message,LogLevel.Info, 5);
+        MainPlugin.Status = eStatus.Stopped;
         p.PartyClient?.Disconnect();
         p.PartyClient = null;
         p.PartyServer?.Stop();
@@ -124,11 +125,13 @@ public static class ServerClientExtensions
             if (p.Settings.Server.ToggleLeaderServer.Value && !p.PartyServer.IsRunning)
             {
                 p.Log("Starting server...");
+               
                 p.PartyServer.Start();
             }
             else
             {
                 p.Settings.Server.ToggleLeaderServer.Value = false;
+                MainPlugin.Status = eStatus.Stopped;
             }
         }
         else

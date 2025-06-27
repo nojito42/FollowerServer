@@ -46,9 +46,11 @@ public class PartyClient(MainPlugin plugin)
             receiveThread.Start();
 
             SendMessage(MessageType.Connect, ClientName);
+            MainPlugin.Status = eStatus.Running;
         }
         catch (Exception ex)
         {
+            MainPlugin.Status = eStatus.Stopped;
             _plugin.Log($"Erreur lors de la connexion au serveur : {ex.Message}", LogLevel.Error);
         }
     }
@@ -57,6 +59,7 @@ public class PartyClient(MainPlugin plugin)
     {
         _client = null;
         _stream = null;
+        MainPlugin.Status = eStatus.Stopped;
         _plugin.IsTaskRunning = false;
     }
 
@@ -116,6 +119,23 @@ public class PartyClient(MainPlugin plugin)
                         switch (messageObj.MessageType)
                         {
                             case MessageType.Order:
+                                if (!string.IsNullOrEmpty(messageObj.Content))
+                                {
+                                    _plugin.Log($"Message reçu : {messageObj.Content}", LogLevel.Error);
+                                   
+                                    if(messageObj.Content == "||")
+                                    {
+                                        _plugin.Log("Pause Follow");
+                                        MainPlugin.Status = eStatus.Paused;
+                                       
+                                    }
+                                    else if (messageObj.Content == "|>")
+                                    {
+                                        _plugin.Log("Resume Follow");
+                                        MainPlugin.Status = eStatus.Running;
+                                    }
+                                    
+                                }
                                 break;
 
                             case MessageType.Input:
@@ -160,7 +180,7 @@ public class PartyClient(MainPlugin plugin)
         {
             if (_plugin.GameController.Area.CurrentArea.IsHideout ||
                 (_plugin.Settings.Party.FollowInTown == false && _plugin.GameController.Area.CurrentArea.IsTown) ||
-                MenuWindow.IsOpened)
+                MenuWindow.IsOpened || MainPlugin.Status != eStatus.Running)
             {
                 return;
             }

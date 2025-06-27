@@ -13,10 +13,21 @@ using Shortcut = GameOffsets.Shortcut;
 using ExileCore.Shared.Helpers;
 using ExileCore.PoEMemory.MemoryObjects;
 using ExileCore.Shared;
+using ImGuiNET;
 namespace FollowerServer;
+
+public enum eStatus
+{
+    Running,
+    Paused,
+    Stopped
+}
 public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 {
+
+    
     #region Variables
+    public static eStatus Status { get; set; } = eStatus.Stopped;
     public List<PlayerSkill> LocalPlayerSkills { get; set; } = [];
     public bool IsTaskRunning { get; set; } = false;
     public Leader PartyLeader { get; private set; }
@@ -44,7 +55,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         {
             if (!IsTaskRunning && Settings.Party.ConnectClient && (PartyClient == null || PartyClient.IsConnected == false))
                 this.ConnectTask();
-            if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow)
+            if (!Settings.Server.ToggleLeaderServer && Settings.Party.Follow && Status == eStatus.Running)
                 FollowerBehavior();
         }
         return null;
@@ -53,7 +64,7 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     {
         SetLeader();
         SetLocalSkillsAndShortCuts();
-        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading)
+        if (!GameController.IngameState.InGame || MenuWindow.IsOpened || !GameController.Window.IsForeground() || GameController.IsLoading || MainPlugin.Status != eStatus.Running)
         {
             this.Log("Game not in focus or menu opened, skipping.");
             return;
@@ -423,21 +434,17 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
             }
         }
     }
+
+    bool paused = false;
+    string pausedText = "||";  
     public override void Render()
     {
         base.Render();
-        var leaderBox = PartyLeader?.Element?.GetClientRect();
-
+        var partyBox = GameController.IngameState.IngameUi.PartyElement?.GetClientRectCache;
         if (Settings.Server.ToggleLeaderServer && PartyServer != null && PartyServer.IsRunning)
         {
-            Graphics.DrawText($"Server is running on {PartyServer.ServerIP}-{PartyServer.ConnectedClients.Count}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20));
+            Graphics.DrawText($"{Status} {PartyServer.ServerIP}-{PartyServer.ConnectedClients.Count}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20));
             var curAction = GameController.Player.GetComponent<Actor>().Action;
-            //var curString = "None";
-            //if (curAction == ActionFlags.UsingAbility)
-            //{
-            //    curString = GameController.Player.GetComponent<Actor>().CurrentAction.Skill.Name;
-            //}
-            //Graphics.DrawText($"Using Ability {curString}", new Vector2(100, 120));
             if (Settings.Server.DrawFollowersCircle)
             {
                 var pt = GameController.IngameState.IngameUi.PartyElement.PlayerElements.ToList();
@@ -446,9 +453,8 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     this.Log("No party members found to draw circles.");
                     return;
                 }
-                int i = 0;
+                int index = 0;
                 pt.ForEach(pm =>
-
                 {
                     SharpDX.Color[] colors = { SharpDX.Color.Red, SharpDX.Color.Green, SharpDX.Color.Blue, SharpDX.Color.Yellow, SharpDX.Color.Purple };
                     var e = GameController.EntityListWrapper.ValidEntitiesByType[EntityType.Player]
@@ -461,27 +467,95 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
                     var gp = GameController.IngameState.Data.GetWorldScreenPosition(e.PosNum);
                     if (GameController.Window.GetWindowRectangleTimeCache.Contains(gp))
                     {
-                        Graphics.DrawCircleInWorld(e.PosNum, Settings.Server.CircleRadius, colors[i] with { A = (byte)Settings.Server.CircleAlpha }, Settings.Server.CircleThickness);
-                        i++;
+                        Graphics.DrawCircleInWorld(e.PosNum, Settings.Server.CircleRadius, colors[index] with { A = (byte)Settings.Server.CircleAlpha }, Settings.Server.CircleThickness);
+                        index++;
                     }
-
-
                 });
 
+                var connectedClients = PartyServer.ConnectedClients;
+               
+                for (int i = 0 ; i < connectedClients.Count ; i++)
+                {
+                    var client = connectedClients.ElementAt(i);
+                    var clientElement = pt.FirstOrDefault(x => x.PlayerName == client.Key);
+                    if(clientElement != null)
+                    {
+                        Graphics.DrawFrame(clientElement.GetClientRect(), SharpDX.Color.Green, 3);
+                    }
+                }
+            }
 
+            //init Imgui in botto of partybox in order to display buttons 
+            if (partyBox.HasValue && partyBox.Value.Bottom > 0.0f && Input.IsKeyDown(Keys.LControlKey))
+            {
+               
+                // Set window position just below the party box
+                var windowPos = new Vector2(0, partyBox.Value.Bottom);         
+                ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
+                ImGui.SetNextWindowSize(new Vector2(partyBox.Value.Width,40), ImGuiCond.Always);
+
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8f);
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0f);
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.7f); // Transparent background
+                ImGui.Begin("Party Controls", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBackground| ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings);
+
+                ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 6f);
+                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(12, 8));
+
+                ImGui.BeginGroup();
+                if (ImGui.Button(pausedText))
+                {
+                    paused = !paused;
+
+                     pausedText = paused? "|>" : pausedText = "||";
+                    if (paused)
+                    {
+                        Status = eStatus.Paused;
+                        
+
+                        this.Log("FollowerPlugin paused.", LogLevel.Info);
+                    }
+                    else
+                    {
+                        Status = eStatus.Running;
+                        this.Log("FollowerPlugin resumed.", LogLevel.Info);
+                    }
+
+                    for (int i = 0; i < PartyServer.ConnectedClients.Count; i++)
+                    {
+                        var client = PartyServer.ConnectedClients.ElementAt(i);
+                        this.Log($"Pausing follower for {client.Key}", LogLevel.Info);
+                        PartyServer.SendMessageToClient(client.Key, new Message
+                        {
+                            MessageType = MessageType.Order,
+                            Content = pausedText,
+                        });
+                    }
+
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("OpenPortal"))
+                {
+                    Settings.Party.ConnectClient.Value = !Settings.Party.ConnectClient;
+                    this.ConnectTask();
+                }
+                ImGui.EndGroup();
+
+                ImGui.PopStyleVar(2); // FrameRounding, FramePadding
+                ImGui.End();
+                ImGui.PopStyleVar(3); // WindowRounding, WindowBorderSize, Alpha
             }
         }
         else if (Settings.Party.ConnectClient && PartyClient != null && PartyClient.IsConnected)
         {
-
-            if (PartyLeader != null && leaderBox.Value.Top > 0.0f)
+            if (PartyLeader != null && partyBox.Value.Top > 0.0f)
             {
-                Graphics.DrawFrame(leaderBox.Value, SharpDX.Color.Green, 2);
-                Graphics.DrawText($"Connected: {Settings.Party.ServerIP.Value}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20), SharpDX.Color.Green);
+                Graphics.DrawFrame(partyBox.Value, SharpDX.Color.Green, 2);
+                Graphics.DrawText($"Connected: {Settings.Party.ServerIP.Value} - {Status}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20), SharpDX.Color.Green);
             }
-
-
         }
+
+     
     }
     #region InitConnectDisposeClose 
     public override bool Initialise()
