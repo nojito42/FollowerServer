@@ -10,8 +10,6 @@ using Newtonsoft.Json;
 using ExileCore.Shared.Helpers;
 
 namespace FollowerServer;
-
-
 public class PartyClient(MainPlugin plugin)
 {
     public string ClientName => _plugin.GameController.Player?.GetComponent<Player>()?.PlayerName;
@@ -25,15 +23,17 @@ public class PartyClient(MainPlugin plugin)
         if (!int.TryParse(_plugin.Settings.Server.Port, out int port))
         {
             _plugin.Log("Le port spécifié est invalide. Connexion annulée.", LogLevel.Error);
+            TerminateConnection();
             return;
         }
 
         if (!IsServerAvailable(ServerIp, port, 500))
         {
             _plugin.Log("Serveur injoignable, connexion annulée.", LogLevel.Error);
+            TerminateConnection();
+
             return;
         }
-
         try
         {
             _client = new TcpClient(ServerIp, port);
@@ -52,6 +52,14 @@ public class PartyClient(MainPlugin plugin)
             _plugin.Log($"Erreur lors de la connexion au serveur : {ex.Message}", LogLevel.Error);
         }
     }
+
+    private void TerminateConnection()
+    {
+        _client = null;
+        _stream = null;
+        _plugin.IsTaskRunning = false;
+    }
+
     private static bool IsServerAvailable(string ip, int port, int timeoutMs = 1000)
     {
         try
@@ -228,9 +236,7 @@ public class PartyClient(MainPlugin plugin)
         {
             _stream?.Close();
             _client.Close();
-            _stream = null;
-            _client = null;
-
+            TerminateConnection();
         }
     }
 }
