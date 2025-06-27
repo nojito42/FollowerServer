@@ -126,13 +126,13 @@ public class PartyClient(MainPlugin plugin)
                                     if(messageObj.Content == "||")
                                     {
                                         _plugin.Log("Pause Follow");
-                                        MainPlugin.Status = eStatus.Paused;
+                                        MainPlugin.Status = eStatus.Running;
                                        
                                     }
                                     else if (messageObj.Content == "|>")
                                     {
                                         _plugin.Log("Resume Follow");
-                                        MainPlugin.Status = eStatus.Running;
+                                        MainPlugin.Status = eStatus.Paused;
                                     }
                                     
                                 }
