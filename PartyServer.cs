@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace FollowerServer;
 
@@ -17,19 +16,16 @@ public class PartyServer
     public bool IsRunning => _isRunning;
 
     public readonly string ServerIP;
-
     public string username = "user";
 
     public bool IsLeaderAndServerHost => _plugin.Settings.Server.ToggleLeaderServer.Value;
 
-    public List<TcpClient> ConnectedClients { get; set; } = []; // Liste des clients connectés
+    public Dictionary<string, TcpClient> ConnectedClients { get; set; } = [];
 
     public PartyServer(MainPlugin plugin)
     {
         _plugin = plugin;
         ServerIP = GetLocalIPAddress();
-
-       
     }
 
     public void Start()
@@ -45,9 +41,11 @@ public class PartyServer
             _plugin.LogError("Le port spécifié est invalide. Initialisation du serveur annulée.");
             return;
         }
+
         _plugin.LogError($"Serveur initialisé sur {ServerIP}:{port}.");
 
-        if (_server == null) _server = new TcpListener(System.Net.IPAddress.Parse(ServerIP), port);
+        if (_server == null)
+            _server = new TcpListener(IPAddress.Parse(ServerIP), port);
 
         Thread serverThread = new(() =>
         {
@@ -56,25 +54,30 @@ public class PartyServer
                 _server.Start();
                 _plugin.LogError($"Serveur démarré sur {ServerIP}:{port}. En attente de connexions...");
                 _isRunning = true;
-                //remove inactive clients if they are not connected
-                ConnectedClients.RemoveAll(c => !c.Connected);
+
+                // Retire les clients déconnectés
+                var toRemove = ConnectedClients
+                    .Where(kvp => !kvp.Value.Connected)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+
+                foreach (var key in toRemove)
+                {
+                    ConnectedClients.Remove(key);
+                }
+
                 var _timer = new Timer(_ =>
                 {
                     lock (ConnectedClients)
                     {
                         _plugin.LogError($"[Monitor] Clients actifs : {ConnectedClients.Count}");
                     }
-                }, null, 0, 5000);
+                }, null, 0, 2000);
 
                 while (_isRunning)
                 {
                     TcpClient client = _server.AcceptTcpClient();
                     _plugin.LogError("Nouveau client connecté.");
-
-                    lock (ConnectedClients)
-                    {
-                        ConnectedClients.Add(client);
-                    }
 
                     Thread clientThread = new(() => HandleClient(client))
                     {
@@ -82,7 +85,6 @@ public class PartyServer
                     };
                     clientThread.Start();
                 }
-
             }
             catch (Exception ex)
             {
@@ -93,6 +95,7 @@ public class PartyServer
         {
             IsBackground = true
         };
+
         serverThread.Start();
     }
 
@@ -118,9 +121,7 @@ public class PartyServer
         foreach (var ip in host.AddressList)
         {
             if (ip.AddressFamily == AddressFamily.InterNetwork)
-            {
                 return ip.ToString();
-            }
         }
         throw new Exception("Local IP Address Not Found!");
     }
@@ -134,12 +135,11 @@ public class PartyServer
             Input = leaderInput
         };
 
-        foreach (var client in ConnectedClients)
+        foreach (var kvp in ConnectedClients)
         {
+            var client = kvp.Value;
             if (client.Connected)
-            {
                 SendMessageToClient(client, message);
-            }
         }
     }
 
@@ -159,34 +159,68 @@ public class PartyServer
 
     private void HandleClient(TcpClient client)
     {
+        string clientName = null;
+
         try
         {
             NetworkStream stream = client.GetStream();
             byte[] buffer = new byte[1024];
             int bytesRead;
 
+            // Lire le premier message (doit être un "Connect" avec nom du client)
+            if ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                string msg = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                var messageObj = Message.DeserializeMessage(msg);
+
+                if (messageObj != null && messageObj.MessageType == MessageType.Connect)
+                {
+                    clientName = messageObj.Content;
+
+                    lock (ConnectedClients)
+                    {
+                        if (!ConnectedClients.ContainsKey(clientName))
+                            ConnectedClients.Add(clientName, client);
+
+                        _plugin.LogError($"Client connecté : {clientName}. Total clients : {ConnectedClients.Count}");
+                    }
+                }
+                else
+                {
+                    _plugin.LogError("Premier message invalide ou non reconnu, fermeture de la connexion.");
+                    client.Close();
+                    return;
+                }
+            }
+
+            // Boucle de réception normale
             while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
             {
                 string msg = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                _plugin.LogError($"Message reçu d’un client : {msg}");
+                _plugin.LogError($"[{clientName}] Message reçu : {msg}");
 
-                // Tu peux ici désérialiser et traiter le message
+                // Ajoute ici le traitement du message si besoin
             }
         }
         catch (Exception ex)
         {
-            _plugin.LogError($"Client déconnecté ou erreur : {ex.Message}");
+            _plugin.LogError($"Erreur côté client {clientName ?? "inconnu"} : {ex.Message}");
         }
         finally
         {
-            // Retirer ce client de la liste des clients connectés
-            lock (ConnectedClients)
+            if (clientName != null)
             {
-                ConnectedClients.Remove(client);
+                lock (ConnectedClients)
+                {
+                    if (ConnectedClients.ContainsKey(clientName))
+                    {
+                        ConnectedClients.Remove(clientName);
+                        _plugin.LogError($"Client {clientName} déconnecté. Clients restants : {ConnectedClients.Count}");
+                    }
+                }
             }
 
             client.Close();
         }
     }
-
 }
