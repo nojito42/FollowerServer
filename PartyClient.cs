@@ -19,6 +19,7 @@ namespace FollowerServer;
 
 public class PartyClient(MainPlugin plugin)
 {
+    public string ClientName => _plugin.GameController.Player?.GetComponent<Player>()?.PlayerName;
     private TcpClient _client;
     private NetworkStream _stream;
     private readonly MainPlugin _plugin = plugin;
@@ -50,7 +51,7 @@ public class PartyClient(MainPlugin plugin)
             };
             receiveThread.Start();
 
-            SendMessage(MessageType.Order, "Hello from client!");
+            SendMessage(MessageType.Connect,ClientName);
         }
         catch (Exception ex)
         {

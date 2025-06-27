@@ -20,6 +20,7 @@ public class LeaderInput
 
 public enum MessageType
 {
+    Connect,
     Input,
     Order,
     Moving

@@ -475,16 +475,18 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
     public override void Render()
     {
         base.Render();
+        var leaderBox = PartyLeader?.Element?.GetClientRect();
+
         if (Settings.Server.ToggleLeaderServer && PartyServer != null && PartyServer.IsRunning)
         {
-            Graphics.DrawText($"Server is running on {PartyServer.ServerIP}", new Vector2(100, 100));
+            Graphics.DrawText($"Server is running on {PartyServer.ServerIP}-{PartyServer.ConnectedClients.Count}", new Vector2(0, PartyLeader.Element.GetClientRectCache.Top - 20));
             var curAction = GameController.Player.GetComponent<Actor>().Action;
-            var curString = "None";
-            if (curAction == ActionFlags.UsingAbility)
-            {
-                curString = GameController.Player.GetComponent<Actor>().CurrentAction.Skill.Name;
-            }
-            Graphics.DrawText($"Using Ability {curString}", new Vector2(100, 120));
+            //var curString = "None";
+            //if (curAction == ActionFlags.UsingAbility)
+            //{
+            //    curString = GameController.Player.GetComponent<Actor>().CurrentAction.Skill.Name;
+            //}
+            //Graphics.DrawText($"Using Ability {curString}", new Vector2(100, 120));
             if (Settings.Server.DrawFollowersCircle)
             {
                 var pt = GameController.IngameState.IngameUi.PartyElement.PlayerElements.ToList();
@@ -521,7 +523,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         else if (Settings.Party.ConnectClient && PartyClient != null && PartyClient.IsConnected)
         {
 
-            var leaderBox = PartyLeader?.Element?.GetClientRect();
             if (PartyLeader != null && leaderBox.Value.Top > 0.0f)
             {
                 Graphics.DrawFrame(leaderBox.Value, SharpDX.Color.Green, 2);
@@ -569,18 +570,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
 
            ;
         };
-        //Settings.Enable.OnValueChanged += (foe, ar) =>
-        //{
-        //    if (ar)
-        //    {
-        //        LogMessage("FollowerPlugin enabled.", 0.5f);
-        //    }
-        //    else
-        //    {
-        //        LogMessage("FollowerPlugin disabled.", 0.5f);
-        //        this.DisconnectWithMessage("FollowerPlugin has been disabled. Disconnecting from party server.");
-        //    }
-        //};
         ToggleLeaderServer();
 
 
@@ -590,10 +579,6 @@ public class MainPlugin : BaseSettingsPlugin<FollowerPluginSettings>
         }
 
         return true;
-    }
-    public void ConnectToPartyServer()
-    {
-
     }
     public override void Dispose()
     {
